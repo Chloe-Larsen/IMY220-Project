@@ -50,8 +50,7 @@ export default function SignUpPage() {
         body: JSON.stringify(formData)
       });
       const data = await res.json();
-      if (res.ok) {
-        alert(data.message || 'Sign up successful!');
+      if (res.ok) {        
         navigate('/home');
       } else {
         setError(data.message || 'Sign up failed.');

@@ -23,8 +23,8 @@ export default function Footer({ isLoggedIn: propIsLoggedIn }) {
 
             {isAuthenticated ? (
                 <nav className="footer-nav-links">
-                    <Link to="/home" className="footer-link">Home</Link>
-                    <Link to="/requests" className="footer-link">Search</Link>
+                    <Link to="/home" className="footer-link">Home</Link>                    
+                    <Link to="/search" className="footer-link">Search</Link>      
                     <Link to="/profile/1" className="footer-link">Profile</Link>
                     <button onClick={handleLogout} className="footer-logout-btn">
                         Log Out

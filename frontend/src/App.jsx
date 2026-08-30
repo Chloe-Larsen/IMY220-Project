@@ -5,7 +5,7 @@ import SignUpPage from './pages/SignUpPage';
 import HomePage from './pages/HomePage';
 import ProfilePage from './pages/ProfilePage';
 import PostPage from './pages/PostPage';
-import RequestsPage from './pages/RequestsPage';
+import SearchPage from './pages/SearchPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 export default function App() {
@@ -19,7 +19,7 @@ export default function App() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/profile/:id" element={<ProfilePage />} />
         <Route path="/post/:id" element={<PostPage />} />
-        <Route path="/requests" element={<RequestsPage />} />
+        <Route path="/search" element={<SearchPage />} />
         <Route path="/*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
