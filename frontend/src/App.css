@@ -591,7 +591,7 @@ body {
   color: var(--text-main);
 }
 
-/* CONDITIONAL DESKTOP NAVIGATION BAR */
+/* ----------------- CONDITIONAL DESKTOP NAVIGATION BAR ----------------- */
 
 .wireframe-desktop-nav {
   width: 100%;
@@ -652,4 +652,83 @@ body {
   display: flex;
   align-items: center;
   gap: 18px;
+}
+
+/* ----------------- 404 NOT FOUND PAGE (DESKTOP) ----------------- */
+
+.notfound-desktop-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.notfound-main-content {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  align-items: center;
+  column-gap: clamp(40px, 6vw, 80px);
+  padding: 4vh 5vw;
+  flex-grow: 1;
+  width: 100%;
+}
+
+.notfound-left-pane {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1.5vh;
+  max-width: 540px;
+}
+
+.notfound-code {
+  font-family: var(--font-brand);
+  font-size: clamp(4.5rem, 6vw, 6.5rem);
+  font-weight: 700;
+  color: var(--accent-green);
+  line-height: 1;
+}
+
+.notfound-heading {
+  font-family: var(--font-main);
+  font-size: clamp(2rem, 3vw, 2.8rem);
+  font-weight: 600;
+  color: var(--text-main);
+  line-height: 1.1;
+}
+
+.notfound-description {
+  font-family: var(--font-main);
+  font-size: clamp(1.1rem, 1.3vw, 1.35rem);
+  color: #555b51;
+  line-height: 1.4;
+  margin-top: 0.5vh;
+}
+
+.notfound-action-row {
+  display: flex;
+  align-items: center;
+  gap: clamp(30px, 4vw, 50px);
+  margin-top: 2.5vh;
+}
+
+.notfound-home-btn {
+  padding: clamp(10px, 1.4vh, 14px) clamp(36px, 4vw, 56px);
+  font-size: clamp(1.05rem, 1.2vw, 1.2rem);
+}
+
+.notfound-right-pane {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.notfound-graphic-preview {
+  width: 100%;
+  max-width: clamp(280px, 28vw, 420px);
+  height: auto;
+  border-radius: 28px;
+  object-fit: contain;
+  opacity: 0.85;
 }
