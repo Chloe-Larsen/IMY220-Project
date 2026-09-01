@@ -732,3 +732,434 @@ body {
   object-fit: contain;
   opacity: 0.85;
 }
+
+/*----------------- EXACT WIREFRAME: HOME PAGE & POST PREVIEW -----------------*/
+
+.home-desktop-screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.home-subbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2.2vh 5vw 1vh;
+  width: 100%;
+}
+
+.home-feed-toggle-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.feed-switch-btn {
+  background: none;
+  border: none;
+  font-family: var(--font-main);
+  font-size: clamp(1.4rem, 1.8vw, 1.8rem);
+  font-weight: 600;
+  color: #7b8377;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s ease;
+}
+
+.feed-switch-btn.active {
+  color: var(--accent-green);
+  text-decoration: underline;
+  text-underline-offset: 6px;
+}
+
+.feed-switch-divider {
+  font-family: var(--font-main);
+  font-size: clamp(1.4rem, 1.8vw, 1.8rem);
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.home-filters-btn {
+  background: none;
+  border: none;
+  font-family: var(--font-main);
+  font-size: clamp(1.4rem, 1.8vw, 1.8rem);
+  font-weight: 500;
+  color: #7b8377;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.home-filters-btn:hover {
+  color: var(--accent-green);
+}
+
+.home-post-grid-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 40px clamp(24px, 4vw, 50px);
+  padding: 2vh 5vw 4vh;
+  width: 100%;
+  flex-grow: 1;
+}
+
+.feed-post-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.post-image-container {
+  display: block;
+  width: 100%;
+  text-decoration: none;
+}
+
+.post-image-placeholder,
+.post-photo-img {
+  width: 100%;
+  aspect-ratio: 1.15 / 1;
+  background-color: var(--tags-color);
+  border-radius: 4px;
+  object-fit: cover;
+  display: block;
+}
+
+.post-meta-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+.post-tags-user-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-main);
+  font-size: clamp(0.95rem, 1.1vw, 1.1rem);
+  color: var(--text-main);
+}
+
+.post-hashtags {
+  color: #555b51;
+}
+
+.post-username-tag {
+  font-weight: 600;
+}
+
+.post-description-text {
+  font-family: var(--font-main);
+  font-size: clamp(1rem, 1.15vw, 1.15rem);
+  font-weight: 600;
+  color: var(--text-main);
+  margin-top: 2px;
+}
+
+.post-card-divider {
+  border: none;
+  height: 2px;
+  background-color: var(--text-main);
+  margin: 6px 0;
+  width: 100%;
+}
+
+.post-stats-footer-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-main);
+}
+
+.post-comments-count-link {
+  font-size: clamp(0.95rem, 1.1vw, 1.1rem);
+  font-weight: 600;
+  color: var(--text-main);
+  text-decoration: none;
+}
+
+.post-comments-count-link:hover {
+  color: var(--accent-green);
+}
+
+.post-metrics-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.metric-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.metric-icon {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+/* Username Link */
+.post-username-link {
+  font-family: var(--font-main);
+  font-size: clamp(0.95rem, 1.1vw, 1.1rem);
+  font-weight: 600;
+  color: var(--text-main);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.post-username-link:hover {
+  color: var(--accent-green);
+  text-decoration: underline;
+}
+
+/* Like Button States */
+.like-btn {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--text-main);
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.like-btn:hover {
+  transform: scale(1.08);
+}
+
+.like-btn .heart-icon {
+  stroke: var(--text-main);
+  fill: transparent;
+  transition: fill 0.2s ease, stroke 0.2s ease;
+}
+
+.like-btn.liked .heart-icon {
+  stroke: var(--accent-green);
+  fill: var(--accent-green);
+}
+
+.like-btn.liked .metric-number {
+  color: var(--accent-green);
+  font-weight: 700;
+}
+
+/* Hashtags Container & Clickable Tag Buttons */
+.post-hashtags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.hashtag-btn {
+  background: none;
+  border: none;
+  font-family: var(--font-main);
+  font-size: clamp(0.95rem, 1.05vw, 1.05rem);
+  font-weight: 500;
+  color: #555b51;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s ease, text-decoration 0.15s ease;
+}
+
+.hashtag-btn:hover {
+  color: var(--accent-green);
+  text-decoration: underline;
+}
+
+/*----------------- FILTERS COMPONENT -----------------*/
+
+.home-filters-dropdown-panel {
+  margin: 0.5vh 5vw 1.5vh;
+  padding: 16px 24px;
+  background-color: #d6dbcf;
+  border: 1px solid var(--border-muted);
+  border-radius: 8px;
+  animation: fadeInDown 0.2s ease-out;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.home-filters-form {
+  display: flex;
+  align-items: flex-end;
+  gap: clamp(16px, 2.5vw, 32px);
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 180px;
+}
+
+.filter-label {
+  font-family: var(--font-main);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.filter-select,
+.filter-input {
+  width: 100%;
+  padding: 8px 12px;
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-muted);
+  border-radius: 6px;
+  font-family: var(--font-main);
+  font-size: 0.95rem;
+  color: var(--text-main);
+  box-sizing: border-box;
+}
+
+.filter-select:focus,
+.filter-input:focus {
+  outline: 2px solid var(--accent-green);
+}
+
+.filter-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 2px;
+}
+
+.filter-apply-btn {
+  padding: 8px 24px;
+  font-size: 0.95rem;
+}
+
+.filter-reset-btn {
+  background: none;
+  border: none;
+  font-family: var(--font-main);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #7b8377;
+  cursor: pointer;
+  padding: 8px 12px;
+  transition: color 0.15s ease;
+}
+
+.filter-reset-btn:hover {
+  color: #a94442;
+  text-decoration: underline;
+}
+
+.home-filters-btn.active {
+  color: var(--accent-green);
+  text-decoration: underline;
+  text-underline-offset: 6px;
+}
+
+/* =========================================================
+   PAGE LOAD SMOOTHING & SHIMMER ANIMATIONS
+   ========================================================= 
+
+.post-card-animated-wrapper {
+  opacity: 0;
+  animation: feedItemFadeIn 0.35s ease-out forwards;
+  width: 100%;
+}
+
+@keyframes feedItemFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.skeleton-card {
+  pointer-events: none;
+  user-select: none;
+}
+
+.skeleton-line {
+  background-color: var(--tags-color);
+  border-radius: 4px;
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--tags-color) 0%,
+    #c4c9ba 50%,
+    var(--tags-color) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmerWave 1.4s infinite ease-in-out;
+}
+
+@keyframes shimmerWave {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+} */
+
+.post-card-animated-wrapper {
+  opacity: 0;
+  animation: feedItemFadeIn 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  width: 100%;
+}
+
+@keyframes feedItemFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--tags-color) 0%,
+    #c4c9ba 50%,
+    var(--tags-color) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmerWave 1s infinite ease-in-out;
+}
+
+@keyframes shimmerWave {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

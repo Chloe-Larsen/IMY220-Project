@@ -9,10 +9,7 @@ export default function SplashPage() {
 
   return (
     <div className="app-container">
-      {/* <header className="header-nav">
-        <h1 className="brand-logo">TipTap</h1>        
-      </header> */}
-      <Navigation />
+      <Navigation isLoggedIn={false}/>
 
       <main className="splash-desktop-container">
         <section className="splash-hero-left">

@@ -5,24 +5,44 @@ const router = Router();
 const posts = [
     {
         id: '1',
-        username: 'birdwatcher_99',
-        caption: 'A rare Cape Sugarbird spotted on the protea blooms this morning.',
-        likes: 24,
+        username: 'avian_chloe',
+        hashtags: '#Sugarbird #Protea #CapeTown',
+        caption: 'Cape Sugarbird feeding on king protea blossoms early morning.',
+        likes: 42,
         timeAgo: '2h',
-        comments: [
-            { id: 1, user: 'avian_fan', text: 'Stunning feather details!' },
-            { id: 2, user: 'nature_lens', text: 'Great focus on the beak.' }
+        comments: [{ id: 1, text: 'Beautiful composition!' }, 
+            { id: 2, text: 'Love it!' },
+            { id: 2, text: 'Clock it!' }
         ]
     },
     {
         id: '2',
-        username: 'raptor_chaser',
-        caption: 'African Fish Eagle hunting over the lake during golden hour.',
-        likes: 85,
-        timeAgo: '5h',
-        comments: [
-            { id: 1, user: 'safari_guy', text: 'Iconic shot!' }
+        username: 'raptor_hunter',
+        hashtags: '#FishEagle #Wildlife #Kruger',
+        caption: 'African Fish Eagle perched along the Olifants River.',
+        likes: 88,
+        timeAgo: '4h',
+        comments: [{ id: 1, text: 'Incredible sharpness!' }, 
+            { id: 2, text: 'I have always wanted to see one!' }
         ]
+    },
+    {
+        id: '3',
+        username: 'sunbird_snaps',
+        hashtags: '#MalachiteSunbird #Fynbos',
+        caption: 'Iridescent emerald feathers catching the midday sunlight.',
+        likes: 19,
+        timeAgo: '6h',
+        comments: []
+    },
+    {
+        id: '4',
+        username: 'owl_scout',
+        hashtags: '#BarnOwl #Nocturnal',
+        caption: 'Silent flight captured at dusk along the coastal reserve.',
+        likes: 65,
+        timeAgo: '1d',
+        comments: [{ id: 1, text: 'Great night shot.' }]
     }
 ];
 
