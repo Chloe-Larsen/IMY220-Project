@@ -33,7 +33,7 @@ export default function PostPreview({ post }) {
                     key={`${cleanTag}-${index}`}
                     type="button"
                     className="hashtag-btn"
-                    onClick={() => navigate(`/requests?q=${encodeURIComponent(cleanTag)}`)}
+                    onClick={() => navigate(`/search?q=${encodeURIComponent(cleanTag)}`)}
                 >
                     {cleanTag}
                 </button>
