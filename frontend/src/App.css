@@ -992,6 +992,7 @@ body {
     opacity: 0;
     transform: translateY(-8px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1084,6 +1085,7 @@ body {
     opacity: 0;
     transform: translateY(18px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1091,12 +1093,10 @@ body {
 }
 
 .skeleton-shimmer {
-  background: linear-gradient(
-    90deg,
-    var(--tags-color) 0%,
-    #c4c9ba 50%,
-    var(--tags-color) 100%
-  );
+  background: linear-gradient(90deg,
+      var(--tags-color) 0%,
+      #c4c9ba 50%,
+      var(--tags-color) 100%);
   background-size: 200% 100%;
   animation: shimmerWave 1s infinite ease-in-out;
 }
@@ -1105,6 +1105,7 @@ body {
   0% {
     background-position: 200% 0;
   }
+
   100% {
     background-position: -200% 0;
   }
@@ -1406,6 +1407,43 @@ body {
   padding: 40px 0;
 }
 
+.profile-status-btn {
+  background: none;
+  border: none;
+  font-family: var(--font-main);
+  font-size: clamp(1.1rem, 1.3vw, 1.35rem);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1;
+  transition: opacity 0.2s ease, text-decoration 0.2s ease;
+}
+
+.profile-status-btn:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.status-friends {
+  color: var(--accent-green);
+}
+
+.status-friend-request-pending {
+  color: var(--accent-green-hover);
+}
+
+.status-not-friends {
+  color: var(--border-muted);
+}
+
+.status-owner {
+  color: var(--accent-green);
+  font-weight: 600;
+}
+
 /*----------------- FRIENDLIST COMPONENT -----------------*/
 
 .profile-fullscreen-friendlist-container {
@@ -1458,7 +1496,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  width: 100%;  
+  width: 100%;
 }
 
 .friendlist-card {

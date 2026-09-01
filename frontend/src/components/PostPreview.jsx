@@ -56,7 +56,7 @@ export default function PostPreview({ post }) {
                     <div className="post-hashtags-container">
                         {renderHashtags()}
                     </div>
-                    <Link to={`/profile/${post.userId || post.username}`} className="post-username-link">
+                    <Link to={`/profile/${post.username}`} className="post-username-link">
                         @{post.username}
                     </Link>
                 </div>

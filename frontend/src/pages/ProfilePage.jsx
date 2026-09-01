@@ -18,19 +18,22 @@ export default function ProfilePage() {
         username: 'avian_chloe'
     };
 
+    if (!id) {
+        return <Navigate to={`/profile/${loggedInUser.username}`} replace />;
+    }
+
+    const targetUsername = id.toLowerCase();
+    const isOwnProfile = loggedInUser.username.toLowerCase() === targetUsername;
+
     const [profile, setProfile] = useState({
-        id: id || 'avian_chloe',
-        username: 'avian_chloe',
-        name: 'Chloe Aris',
-        pronouns: 'she/her',
-        links: 'linktr.ee/avianchloe',
-        bio: 'Bird watcher & wildlife photographer based in the Western Cape. Capturing fynbos endemics.',
+        id: targetUsername,
+        username: targetUsername,
+        name: '',
+        pronouns: '',
+        links: '',
+        bio: '',
         avatarUrl: '',
-        friends: [
-            { id: '2', username: 'raptor_hunter', name: 'Liam Vance' },
-            { id: '3', username: 'sunbird_snaps', name: 'Nandi Sithole' },
-            { id: '4', username: 'owl_scout', name: 'Sarah Finch' }
-        ]
+        friends: []
     });
 
     const [pendingRequests, setPendingRequests] = useState([
@@ -42,46 +45,55 @@ export default function ProfilePage() {
     const [showRequests, setShowRequests] = useState(false);
     const [showEditProfile, setShowEditProfile] = useState(false);
 
-    const [relationshipStatus, setRelationshipStatus] = useState('Friends');
+    const [relationshipStatus, setRelationshipStatus] = useState('Not Friends');
     const [userPosts, setUserPosts] = useState([]);
     const [loading, setLoading] = useState(true);
-
-    const isOwnProfile =
-        loggedInUser.username.toLowerCase() === (profile.username).toLowerCase();
 
     const canViewFriends = isOwnProfile || relationshipStatus === 'Friends';
 
     useEffect(() => {
+        setShowFriendsList(false);
+        setShowRequests(false);
+        setShowEditProfile(false);
         setLoading(true);
         const startTime = Date.now();
-        const targetUser = 'avian_chloe';
 
-        if (!isOwnProfile) {
-            setRelationshipStatus('Friends');
-        }
-
-        fetch(`http://localhost:5000/api/posts?q=${encodeURIComponent(targetUser)}`)
-            .then((res) => (res.ok ? res.json() : []))
+        const fetchProfile = fetch(`http://localhost:5000/api/auth/profile/${encodeURIComponent(targetUsername)}`)
+            .then((res) => (res.ok ? res.json() : null))
             .then((data) => {
-                const postsList = Array.isArray(data) ? data : [];
-                const elapsedTime = Date.now() - startTime;
-                const remainingTime = Math.max(0, 1000 - elapsedTime);
-
-                setTimeout(() => {
-                    setUserPosts(postsList);
-                    setLoading(false);
-                }, remainingTime);
-            })
-            .catch(() => {
-                const elapsedTime = Date.now() - startTime;
-                const remainingTime = Math.max(0, 1000 - elapsedTime);
-
-                setTimeout(() => {
-                    setUserPosts([]);
-                    setLoading(false);
-                }, remainingTime);
+                if (data) {
+                    setProfile(data);                    
+                    const isFriend = (data.friends || []).some(
+                        (f) => f.username.toLowerCase() === loggedInUser.username.toLowerCase()
+                    );
+                    setRelationshipStatus(isFriend ? 'Friends' : 'Not Friends');
+                } else {
+                    setProfile({
+                        id: targetUsername,
+                        username: targetUsername,
+                        name: targetUsername.replace('_', ' ').toUpperCase(),
+                        pronouns: '',
+                        links: '',
+                        bio: 'Wildlife observer and community contributor.',
+                        avatarUrl: '',
+                        friends: []
+                    });
+                    setRelationshipStatus('Not Friends');
+                }
             });
-    }, [id, isOwnProfile]);
+
+        const fetchPosts = fetch(`http://localhost:5000/api/posts?q=${encodeURIComponent(targetUsername)}`)
+            .then((res) => (res.ok ? res.json() : []))
+            .then((posts) => {
+                setUserPosts(Array.isArray(posts) ? posts : []);
+            });
+
+        Promise.allSettled([fetchProfile, fetchPosts]).then(() => {
+            const elapsedTime = Date.now() - startTime;
+            const remainingTime = Math.max(0, 1000 - elapsedTime);
+            setTimeout(() => setLoading(false), remainingTime);
+        });
+    }, [targetUsername, loggedInUser.username]);
 
     const handleStatusClick = () => {
         if (isOwnProfile) return;
@@ -144,7 +156,7 @@ export default function ProfilePage() {
                         onBack={() => setShowRequests(false)}
                     />
                 </main>
-            ) : showEditProfile ? (                
+            ) : showEditProfile ? (
                 <main className="profile-fullscreen-friendlist-container">
                     <EditProfile
                         profile={profile}
