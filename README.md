@@ -17,9 +17,16 @@
   <hr style="margin:10px; background-color: #9EAF9A">
   
   <h2 style="font-size: 32px; color: #2F2D2E; margin-top: 25px">Docker Commands</h2>
+  <p>As I have used a docker compose file there is no need to individually run the docker files for the backend and the frontend. So to run the application there is only only required prerequisite</p>
   <ul style="margin-top: 0px">
-    <li>cmd</li>
+    <li>Have <strong>Docker Desktop</strong> installed and open on the device you want to run TipTap on.</li>
   </ul> 
+
+  To run the program, use the command: ```docker compose up --build``` in the root directly of the project.
+
+  The **frontend UI** of the application will be available at [localhost:5173](http://localhost:5173) 
+
+  The **backend API** of the application will be available at [localhost:5000](http://localhost:5000/api/health)  
   <hr style="margin:10px; background-color: #9EAF9A">
 
   <h2 style="font-size: 32px; color: #2F2D2E; margin-top: 25px">Styles:</h2>
