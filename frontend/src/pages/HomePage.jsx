@@ -72,7 +72,7 @@ export default function HomePage() {
 
   return (
     <div className="app-container home-desktop-screen">
-      <Navigation isLoggedIn={true} />
+      <Navigation isLoggedIn={true} home={true}/>
 
       <div className="home-subbar">
         <div className="home-feed-toggle-group">

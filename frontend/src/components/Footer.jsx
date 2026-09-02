@@ -1,12 +1,10 @@
 import { Link, useNavigate } from 'react-router-dom';
 import logoImg from '../assets/logo.jpeg';
 
-export default function Footer({ isLoggedIn: propIsLoggedIn }) {
+export default function Footer({ isLoggedIn = true }) {
     const navigate = useNavigate();
 
-    // Check prop or localStorage auth token
-    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-    const isAuthenticated = propIsLoggedIn !== undefined ? propIsLoggedIn : Boolean(token);
+    const loggedInUser = JSON.parse(localStorage.getItem('user')) || { username: 'avian_chloe' };
 
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -21,11 +19,13 @@ export default function Footer({ isLoggedIn: propIsLoggedIn }) {
                 <span className="brand-logo footer-brand-text">TipTap</span>
             </div>
 
-            {isAuthenticated ? (
+            {isLoggedIn ? (
                 <nav className="footer-nav-links">
-                    <Link to="/home" className="footer-link">Home</Link>                    
-                    <Link to="/search" className="footer-link">Search</Link>      
-                    <Link to="/profile/1" className="footer-link">Profile</Link>
+                    <span>© 2026 Developed by Chloe Larsen (u25004141)</span>
+                    <a href="https://github.com/Chloe-Larsen/IMY220-Project" target="_blank" rel="noreferrer">GitHub Repo</a>
+                    <Link to="/home" className="footer-link">Home</Link>
+                    <Link to="/search" className="footer-link">Search</Link>
+                    <Link to={`/profile/${loggedInUser.username}`} className="footer-link">Profile</Link>
                     <button onClick={handleLogout} className="footer-logout-btn">
                         Log Out
                     </button>

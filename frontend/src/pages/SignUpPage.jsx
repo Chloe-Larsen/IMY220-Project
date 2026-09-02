@@ -216,7 +216,7 @@ export default function SignUpPage() {
           </button>
         </div>
       </form>
-      <Footer />
+      <Footer isLoggedIn={false}/>
     </div>
   );
 }

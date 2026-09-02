@@ -138,7 +138,7 @@ export default function ProfilePage() {
 
     return (
         <div className="app-container profile-desktop-screen">
-            <Navigation isLoggedIn={true} />
+            <Navigation isLoggedIn={true} profile={true}/>
 
             {showFriendsList ? (
                 <main className="profile-fullscreen-friendlist-container">

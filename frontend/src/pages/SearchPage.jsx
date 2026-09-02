@@ -84,7 +84,7 @@ export default function SearchPage() {
 
   return (
     <div className="app-container search-desktop-screen">
-      <Navigation isLoggedIn={true} />
+      <Navigation isLoggedIn={true} search={true}/>
 
       <main className="search-main-container">
         <section className="search-bar-section">

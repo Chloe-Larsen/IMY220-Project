@@ -627,8 +627,19 @@ body {
 .nav-icon-button {
   background: none;
   border: none;
-  color: var(--text-main);
-  text-decoration: none;
+  color: var(--text-main);  
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.nav-icon-link-current {  
+  background: none;
+  border-bottom: 3px solid #2F2D2E;
+  color: var(--text-main);  
   cursor: pointer;
   padding: 4px;
   display: flex;

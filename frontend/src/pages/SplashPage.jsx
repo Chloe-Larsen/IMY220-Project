@@ -38,7 +38,7 @@ export default function SplashPage() {
           </div>
         </section>
       </main>
-      <Footer />
+      <Footer isLoggedIn={false}/>
     </div>
   );
 }
