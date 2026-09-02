@@ -10,7 +10,7 @@ export default function FriendList({ friends = [], onBack }) {
           type="button"
           className="signup-back-arrow friendlist-back-btn"
           onClick={onBack}
-          aria-label="Back to profil"
+          aria-label="Back to profile"
         >
           ←
         </button>
