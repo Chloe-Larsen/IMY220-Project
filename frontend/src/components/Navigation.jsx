@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { FiHome, FiSearch, FiUser, FiLogOut } from 'react-icons/fi';
 
-export default function Navigation({ isLoggedIn = true, home = false, search = false, profile = false}) {
+export default function Navigation({ isLoggedIn = true, home = false, search = false, profile = false, isProfile = false}) {
   const navigate = useNavigate();
   const loggedInUser = JSON.parse(localStorage.getItem('user')) || { username: 'avian_chloe' };
 
@@ -29,7 +29,7 @@ export default function Navigation({ isLoggedIn = true, home = false, search = f
           <Link to="/search" className={`${search ? `nav-icon-link-current` : 'nav-icon-link'}`} title="Search">
             <FiSearch className="nav-icon-symbol" />
           </Link>
-          <Link to={`/profile/${loggedInUser.username}`} className={`${profile ? `nav-icon-link-current` : 'nav-icon-link'}`} title="My Profile">
+          <Link to={`/profile/${loggedInUser.username}`} className={`${profile && isProfile ? `nav-icon-link-current` : 'nav-icon-link'}`} title="My Profile">
             <FiUser className="nav-icon-symbol" />
           </Link>
           <button type="button" className="nav-icon-button" onClick={handleLogout} title="Log Out">

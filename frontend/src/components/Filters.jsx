@@ -7,13 +7,13 @@ export default function Filters({ onApplyFilters, onResetFilters }) {
 
   const handleApply = (e) => {
     e.preventDefault();
-    onApplyFilters({      
+    onApplyFilters({
       sortBy,
       tag: tagInput.trim()
     });
   };
 
-  const handleReset = () => {    
+  const handleReset = () => {
     setSortBy('recent');
     setTagInput('');
     if (onResetFilters) onResetFilters();
@@ -21,7 +21,7 @@ export default function Filters({ onApplyFilters, onResetFilters }) {
 
   return (
     <div className="home-filters-dropdown-panel">
-      <form onSubmit={handleApply} className="home-filters-form">        
+      <form onSubmit={handleApply} className="home-filters-form">
         <div className="filter-group">
           <label htmlFor="filter-sort" className="filter-label">Sort By</label>
           <select
@@ -35,7 +35,7 @@ export default function Filters({ onApplyFilters, onResetFilters }) {
             <option value="comments">Most Active</option>
           </select>
         </div>
-        
+
         <div className="filter-group">
           <label htmlFor="filter-tag" className="filter-label">Hashtag / Keyword</label>
           <input
@@ -47,7 +47,7 @@ export default function Filters({ onApplyFilters, onResetFilters }) {
             onChange={(e) => setTagInput(e.target.value)}
           />
         </div>
-        
+
         <div className="filter-actions-group">
           <button type="submit" className="wireframe-btn filter-apply-btn">
             Apply

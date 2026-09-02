@@ -7,12 +7,12 @@ import PostSkeleton from '../components/PostSkeleton';
 import FriendList from '../components/FriendList';
 import Requests from '../components/Requests';
 import EditProfile from '../components/EditProfile';
+import NewPost from '../components/NewPost'
 
 export default function ProfilePage() {
     const { id } = useParams();
     const navigate = useNavigate();
 
-    // Active logged-in user
     const loggedInUser = JSON.parse(localStorage.getItem('user')) || {
         id: '1',
         username: 'avian_chloe'
@@ -44,6 +44,7 @@ export default function ProfilePage() {
     const [showFriendsList, setShowFriendsList] = useState(false);
     const [showRequests, setShowRequests] = useState(false);
     const [showEditProfile, setShowEditProfile] = useState(false);
+    const [showNewPost, setShowNewPost] = useState(false);
 
     const [relationshipStatus, setRelationshipStatus] = useState('Not Friends');
     const [userPosts, setUserPosts] = useState([]);
@@ -62,7 +63,7 @@ export default function ProfilePage() {
             .then((res) => (res.ok ? res.json() : null))
             .then((data) => {
                 if (data) {
-                    setProfile(data);                    
+                    setProfile(data);
                     const isFriend = (data.friends || []).some(
                         (f) => f.username.toLowerCase() === loggedInUser.username.toLowerCase()
                     );
@@ -136,9 +137,25 @@ export default function ProfilePage() {
         setPendingRequests((prev) => prev.filter((r) => r.id !== requestId));
     };
 
+    const handlePublishPost = (newPostData) => {
+        const createdPost = {
+            id: String(Date.now()),
+            username: loggedInUser.username,
+            caption: newPostData.caption,
+            hashtags: newPostData.hashtags,
+            imageUrl: newPostData.imageUrl,
+            likes: 0,
+            timeAgo: 'Just now',
+            comments: []
+        };
+
+        setUserPosts((prev) => [createdPost, ...prev]);
+        setShowNewPost(false);
+    };
+
     return (
         <div className="app-container profile-desktop-screen">
-            <Navigation isLoggedIn={true} profile={true}/>
+            <Navigation isLoggedIn={true} profile={true} isProfile={isOwnProfile} />
 
             {showFriendsList ? (
                 <main className="profile-fullscreen-friendlist-container">
@@ -162,6 +179,13 @@ export default function ProfilePage() {
                         profile={profile}
                         onSave={handleSaveProfile}
                         onCancel={() => setShowEditProfile(false)}
+                    />
+                </main>
+            ) : showNewPost ? (                
+                <main className="profile-fullscreen-friendlist-container">
+                    <NewPost
+                        onPublish={handlePublishPost}
+                        onCancel={() => setShowNewPost(false)}
                     />
                 </main>
             ) :
@@ -247,7 +271,7 @@ export default function ProfilePage() {
                                 <button
                                     type="button"
                                     className="wireframe-btn wf-btn"
-                                    onClick={() => navigate('/create-post')}
+                                    onClick={() => setShowNewPost(true)}
                                 >
                                     Make Post
                                 </button>

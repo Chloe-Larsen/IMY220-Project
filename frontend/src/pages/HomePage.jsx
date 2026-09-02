@@ -28,7 +28,7 @@ export default function HomePage() {
         const postList = Array.isArray(data) ? data : [];
         const elapsedTime = Date.now() - startTime;
         const remainingTime = Math.max(0, 1000 - elapsedTime);
-        
+
         setTimeout(() => {
           setPosts(postList);
           setRawServerPosts(postList);
@@ -72,7 +72,7 @@ export default function HomePage() {
 
   return (
     <div className="app-container home-desktop-screen">
-      <Navigation isLoggedIn={true} home={true}/>
+      <Navigation isLoggedIn={true} home={true} />
 
       <div className="home-subbar">
         <div className="home-feed-toggle-group">
@@ -129,8 +129,8 @@ export default function HomePage() {
         )}
 
         {!loading && !error && posts.map((post, idx) => (
-          <div 
-            key={post.id} 
+          <div
+            key={post.id}
             className="post-card-animated-wrapper"
             style={{ animationDelay: `${idx * 0.15}s` }}
           >

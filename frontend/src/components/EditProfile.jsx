@@ -63,8 +63,7 @@ export default function EditProfile({ profile, onSave, onCancel }) {
   };
 
   return (
-    <form className="edit-profile-form-layout" onSubmit={handleSubmit}>
-      {/* Header bar matching view transitions */}
+    <form className="edit-profile-form-layout" onSubmit={handleSubmit}>      
       <div className="friendlist-header">
         <button
           type="button"
@@ -76,8 +75,8 @@ export default function EditProfile({ profile, onSave, onCancel }) {
         </button>
         <h2 className="friendlist-title">Edit Profile</h2>
       </div>
-      
-      <section className="profile-bio-hero-section edit-hero-section">        
+
+      <section className="profile-bio-hero-section edit-hero-section">
         <div className="profile-left-bio-pane edit-left-pane">
           <div className="edit-fields-stack">
             <div className="edit-field-group">
@@ -134,7 +133,7 @@ export default function EditProfile({ profile, onSave, onCancel }) {
             </div>
           </div>
         </div>
-        
+
         <div className="wf-profile-picture-container">
           <input
             type="file"
@@ -185,8 +184,7 @@ export default function EditProfile({ profile, onSave, onCancel }) {
           </div>
         </div>
       </section>
-
-      {/* Action Buttons Row */}
+      
       <div className="edit-profile-actions-bar">
         <button type="submit" className="wireframe-btn edit-save-btn">
           Save Changes
