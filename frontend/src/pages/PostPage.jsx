@@ -6,6 +6,7 @@ import EditPost from '../components/EditPost';
 import Comments from '../components/Comments';
 import { FiHeart, FiClock, FiMoreHorizontal, FiEdit2, FiAlertCircle, FiTrash2 } from 'react-icons/fi';
 import Image from '../components/Image';
+import ReportModal from '../components/ReportModal';
 
 export default function PostPage() {
   const { id } = useParams();
@@ -20,7 +21,7 @@ export default function PostPage() {
   const [loading, setLoading] = useState(true);
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
-
+  const [showReportModal, setShowReportModal] = useState(false);
   const [showOptionsMenu, setShowOptionsMenu] = useState(false);
   const [isEditingPost, setIsEditingPost] = useState(false);
 
@@ -76,7 +77,7 @@ export default function PostPage() {
 
   const handleReportPost = () => {
     setShowOptionsMenu(false);
-    alert(`Report submitted for post #${id}. Our team will review it.`);
+    setShowReportModal(true);
   };
 
   const handleSavePost = async (updatedData) => {
@@ -181,7 +182,6 @@ export default function PostPage() {
         body: JSON.stringify({ text: newText })
       });
     } catch {
-      // Local fallback
     }
 
     setPost((prev) => ({
@@ -200,7 +200,6 @@ export default function PostPage() {
         method: 'DELETE'
       });
     } catch {
-      // Local fallback
     }
 
     setPost((prev) => ({
@@ -381,6 +380,17 @@ export default function PostPage() {
         </div>
       </main>
 
+      {showReportModal && (
+        <ReportModal
+          postId={id}
+          onClose={() => setShowReportModal(false)}
+          onSubmitSuccess={() => {
+            setShowReportModal(false);
+            alert(`Report submitted for post #${id}. Our team will review it.`);
+          }}
+        />
+      )}
+      
       <Footer isLoggedIn={true} />
     </div>
   );

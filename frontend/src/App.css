@@ -1258,14 +1258,14 @@ body {
 
 .wf-status-text {
   font-family: var(--font-main);
-  font-size: clamp(1.2rem, 1.6vw, 1.6rem);
+  font-size: 40px;
   font-weight: 600;
   color: var(--accent-green);
 }
 
 .wf-username-text {
   font-family: var(--font-main);
-  font-size: clamp(1.2rem, 1.6vw, 1.6rem);
+  font-size: 40px;
   font-weight: 600;
   color: var(--accent-green);
   text-align: right;
@@ -2425,4 +2425,208 @@ body {
   text-decoration: none;
   font-size: 0.85rem;
   color: var(--text-muted, #7b8377);
+}
+
+/*----------------- ADMIN Page -----------------*/
+.admin-console-layout {
+  max-width: 1000px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.admin-tabs-subbar {
+  padding: 1.5vh 0;
+  border-bottom: 2px solid var(--divider-color);
+  margin-bottom: 2vh;
+}
+
+.admin-status-toast {
+  padding: 12px 18px;
+  background-color: #d6dbcf;
+  color: var(--accent-green-hover);
+  border: 1px solid var(--accent-green);
+  border-radius: 6px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-main);
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.admin-status-toast .toast-icon {
+  font-size: 1.25rem;
+  color: var(--accent-green);
+  flex-shrink: 0;
+}
+
+.admin-loading-grid {
+  margin-top: 20px;
+}
+
+.admin-panel-content {
+  margin-top: 10px;
+}
+
+.admin-section-header {
+  margin-bottom: 20px;
+}
+
+.admin-section-header h3 {
+  font-family: var(--font-main);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 4px;
+}
+
+/* Reason Creation Form */
+.admin-add-reason-form {
+  background-color: #d6dbcf;
+  border: 1px solid var(--border-muted);
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 28px;
+}
+
+.admin-input-btn-row {
+  display: flex;
+  gap: 14px;
+  margin-top: 8px;
+}
+
+.admin-add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  padding: 10px 24px;
+}
+
+/* Stack cards */
+.admin-items-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+}
+
+.admin-reason-card,
+.admin-report-card,
+.admin-user-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 22px;
+  background-color: #d6dbcf;
+  border: 1px solid var(--border-muted);
+  border-radius: 8px;
+  gap: 20px;
+}
+
+.admin-reason-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-reason-icon {
+  color: var(--text-main);
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.admin-report-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.admin-report-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #a94442;
+  font-size: 1.05rem;
+}
+
+.admin-alert-icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.admin-report-meta {
+  font-family: var(--font-main);
+  font-size: 0.95rem;
+  color: #555b51;
+}
+
+.admin-report-meta strong {
+  color: var(--text-main);
+}
+
+.admin-report-caption {
+  font-family: var(--font-main);
+  font-size: 0.95rem;
+  font-style: italic;
+  color: var(--text-main);
+  margin-top: 2px;
+}
+
+.admin-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-delete-btn,
+.admin-delete-post-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: transparent;
+  color: #a94442;
+  border: 1px solid #a94442;
+}
+
+.admin-delete-btn:hover,
+.admin-delete-post-btn:hover {
+  background-color: #fce8e6;
+  border-color: #a94442;
+  color: #843534;
+}
+
+.admin-user-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.admin-user-email {
+  font-family: var(--font-main);
+  font-size: 0.95rem;
+  color: #555b51;
+}
+
+.admin-user-role-badge {
+  font-family: var(--font-main);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.admin-user-role-badge.role-admin {
+  background-color: var(--accent-green);
+  color: #ffffff;
+}
+
+.admin-user-role-badge.role-user {
+  background-color: var(--tags-color);
+  color: var(--text-main);
 }
