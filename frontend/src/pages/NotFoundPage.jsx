@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
 import logoImg from '../assets/logo.jpeg';
+import Image from '../components/Image';
 
 export default function NotFoundPage() {
     const navigate = useNavigate();
@@ -34,9 +35,9 @@ export default function NotFoundPage() {
                 </div>
 
                 <div className="notfound-right-pane">
-                    <img
-                        src={logoImg}
-                        alt="TipTap Graphic"
+                    <Image
+                        imageValue={logoImg}
+                        altText="TipTap Graphic"
                         className="notfound-graphic-preview"
                     />
                 </div>

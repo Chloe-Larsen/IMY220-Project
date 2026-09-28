@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import logoImg from '../assets/logo.jpeg';
+import Image from './Image';
 
 export default function Footer({ isLoggedIn = true }) {
     const navigate = useNavigate();
@@ -15,7 +16,10 @@ export default function Footer({ isLoggedIn = true }) {
     return (
         <footer className="wireframe-footer">
             <div className="footer-brand-container">
-                <img src={logoImg} alt="TipTap Logo" className="footer-logo-img" />
+                <Image 
+                imageValue={logoImg} 
+                altText="TipTap Logo" 
+                className="footer-logo-img" />
                 <span className="brand-logo footer-brand-text">TipTap</span>
             </div>
 
@@ -26,6 +30,7 @@ export default function Footer({ isLoggedIn = true }) {
                     <Link to="/home" className="footer-link">Home</Link>
                     <Link to="/search" className="footer-link">Search</Link>
                     <Link to={`/profile/${loggedInUser.username}`} className="footer-link">Profile</Link>
+                    <Link to="/activity" className="footer-link">Activity</Link>
                     <button onClick={handleLogout} className="footer-logout-btn">
                         Log Out
                     </button>

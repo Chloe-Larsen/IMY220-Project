@@ -123,6 +123,13 @@ body {
   border-radius: 12px;
 }
 
+.splash-logo-image {
+  /* nav-logo-image*/
+  height: 420px;
+  width: auto;
+  object-fit: contain;
+}
+
 /*----------------- FORMS & FOOTER -----------------*/
 
 .form-input,
@@ -627,7 +634,7 @@ body {
 .nav-icon-button {
   background: none;
   border: none;
-  color: var(--text-main);  
+  color: var(--text-main);
   cursor: pointer;
   padding: 4px;
   display: flex;
@@ -636,10 +643,10 @@ body {
   transition: transform 0.15s ease, color 0.15s ease;
 }
 
-.nav-icon-link-current {  
+.nav-icon-link-current {
   background: none;
   border-bottom: 3px solid #2F2D2E;
-  color: var(--text-main);  
+  color: var(--text-main);
   cursor: pointer;
   padding: 4px;
   display: flex;
@@ -1381,10 +1388,19 @@ body {
 
 .wf-profile-actions-bar {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: clamp(16px, 3vw, 36px);
   margin-top: 3vh;
   width: 100%;
+}
+
+.wf-posts-album-action-bar {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: clamp(16px, 3vw, 36px);
+  margin-top: 3vh;
+  width: 100%;
+  padding-bottom: 20px;
 }
 
 .wf-btn {
@@ -1667,6 +1683,11 @@ body {
 }
 
 .edit-cancel-btn {
+  padding: 11px 28px;
+  font-size: 1.1rem;
+}
+
+.edit-delete-btn {
   padding: 11px 28px;
   font-size: 1.1rem;
 }
@@ -1980,6 +2001,69 @@ body {
 }
 
 .postpage-comment-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 6px 0;
+}
+
+.comment-content-area {
+  flex: 1;
+  word-break: break-word;
+}
+
+.comment-inline-edit-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.comment-edit-input {
+  flex: 1;
+  border: 1px solid var(--border-color, #ccc);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 0.9rem;
+}
+
+.comment-actions-bar,
+.comment-inline-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.comment-action-btn,
+.comment-icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted, #7b8377);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  font-size: 0.95rem;
+  border-radius: 4px;
+  transition: color 0.15s ease;
+}
+
+.comment-action-btn:hover {
+  color: var(--text-main, #333);
+}
+
+.comment-action-btn.delete-btn:hover,
+.comment-icon-btn.cancel-btn:hover {
+  color: #cf222e;
+}
+
+.comment-icon-btn.save-btn:hover {
+  color: #2e7d32;
+}
+
+.postpage-comment-item {
   font-family: var(--font-main);
   font-size: 1rem;
   line-height: 1.35;
@@ -2141,4 +2225,119 @@ body {
   align-items: center;
   gap: 16px;
   margin-top: 12px;
+}
+
+/*----------------- ALBUM CARD -----------------*/
+.album-card-preview {
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.album-card-preview:hover {
+  transform: translateY(-3px);
+}
+
+.album-cover-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.album-empty-placeholder {
+  min-height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--surface-color, #f0f3ef);
+  width: 100%;
+}
+
+.album-placeholder-icon {
+  font-size: 3rem;
+  color: var(--text-muted, #7b8377);
+}
+
+.album-badge {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.album-card-title {
+  margin: 4px 0;
+  font-size: 1.15rem;
+}
+
+/*----------------- ALBUM DETAILS -----------------*/
+.album-meta-header {
+  margin-bottom: 24px;
+}
+
+.album-owner-controls {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.album-posts-section {
+  margin-top: 24px;
+}
+
+.album-post-item-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.album-remove-post-btn {
+  margin-top: 8px;
+  background: none;
+  border: 1px solid #cf222e;
+  color: #cf222e;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+/*----------------- NEW ALBUM -----------------*/
+.album-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.album-modal-content {
+  background: #fff;
+  border-radius: 8px;
+  padding: 24px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.album-select-post-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
 }

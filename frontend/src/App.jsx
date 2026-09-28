@@ -6,6 +6,8 @@ import HomePage from './pages/HomePage';
 import ProfilePage from './pages/ProfilePage';
 import PostPage from './pages/PostPage';
 import SearchPage from './pages/SearchPage';
+import AdminPage from './pages/AdminPage';
+import ActivityPage from './pages/ActivityPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 export default function App() {
@@ -20,6 +22,8 @@ export default function App() {
         <Route path="/profile/:id" element={<ProfilePage />} />
         <Route path="/post/:id" element={<PostPage />} />
         <Route path="/search" element={<SearchPage />} />
+        <Route path="/admin" element={<AdminPage />} />
+        <Route path="/activity" element={<ActivityPage />} />
         <Route path="/*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>

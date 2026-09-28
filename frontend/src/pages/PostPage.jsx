@@ -4,7 +4,8 @@ import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
 import EditPost from '../components/EditPost';
 import Comments from '../components/Comments';
-import { FiHeart, FiClock, FiMoreHorizontal, FiEdit2, FiAlertCircle } from 'react-icons/fi';
+import { FiHeart, FiClock, FiMoreHorizontal, FiEdit2, FiAlertCircle, FiTrash2 } from 'react-icons/fi';
+import Image from '../components/Image';
 
 export default function PostPage() {
   const { id } = useParams();
@@ -19,7 +20,7 @@ export default function PostPage() {
   const [loading, setLoading] = useState(true);
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
-  
+
   const [showOptionsMenu, setShowOptionsMenu] = useState(false);
   const [isEditingPost, setIsEditingPost] = useState(false);
 
@@ -54,7 +55,7 @@ export default function PostPage() {
         }, remainingTime);
       });
   }, [id]);
-  
+
   useEffect(() => {
     const handleOutsideClick = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -78,13 +79,46 @@ export default function PostPage() {
     alert(`Report submitted for post #${id}. Our team will review it.`);
   };
 
-  const handleSavePost = (updatedData) => {
+  const handleSavePost = async (updatedData) => {
+    try {
+      await fetch(`http://localhost:5000http://localhost:5000http://localhost:5000/api/posts/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedData)
+      });
+    } catch {
+      // Local fallback
+    }
+
     setPost((prev) => ({
       ...prev,
       caption: updatedData.caption,
       hashtags: updatedData.hashtags
     }));
     setIsEditingPost(false);
+  };
+
+  const handleDeletePost = async () => {
+    setShowOptionsMenu(false);
+
+    const confirmDelete = window.confirm(
+      'Are you sure you want to delete this sighting? This will remove all associated comments.'
+    );
+    if (!confirmDelete) return;
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/posts/${id}`, {
+        method: 'DELETE'
+      });
+
+      if (res.ok) {
+        navigate('/home');
+      } else {
+        alert('Failed to delete the post. Please try again.');
+      }
+    } catch {
+      navigate('/home');
+    }
   };
 
   const handleAddComment = async (text) => {
@@ -139,6 +173,42 @@ export default function PostPage() {
     });
   };
 
+  const handleEditComment = async (commentId, newText) => {
+    try {
+      await fetch(`http://localhost:5000/api/posts/${id}/comments/${commentId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: newText })
+      });
+    } catch {
+      // Local fallback
+    }
+
+    setPost((prev) => ({
+      ...prev,
+      comments: (prev.comments || []).map((c) =>
+        c.id === commentId ? { ...c, text: newText } : c
+      )
+    }));
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    if (!window.confirm('Are you sure you want to delete this comment?')) return;
+
+    try {
+      await fetch(`http://localhost:5000/api/posts/${id}/comments/${commentId}`, {
+        method: 'DELETE'
+      });
+    } catch {
+      // Local fallback
+    }
+
+    setPost((prev) => ({
+      ...prev,
+      comments: (prev.comments || []).filter((c) => c.id !== commentId)
+    }));
+  };
+
   if (loading) {
     return (
       <div className="app-container postpage-desktop-screen">
@@ -148,9 +218,9 @@ export default function PostPage() {
             <div className="postpage-skeleton-box skeleton-shimmer" />
           </div>
           <div className="postpage-desktop-right-col">
-            <div className="postpage-skeleton-line skeleton-shimmer" style={{ width: '60%', height: '32px' }} />
-            <div className="postpage-skeleton-line skeleton-shimmer" style={{ width: '40%', height: '24px' }} />
-            <div className="postpage-skeleton-line skeleton-shimmer" style={{ width: '90%', height: '80px', marginTop: '16px' }} />
+            <div className="postpage-skeleton-line postpage-skeleton-title skeleton-shimmer" />
+            <div className="postpage-skeleton-line postpage-skeleton-subtitle skeleton-shimmer" />
+            <div className="postpage-skeleton-line postpage-skeleton-body skeleton-shimmer" />
           </div>
         </main>
         <Footer isLoggedIn={true} />
@@ -162,14 +232,13 @@ export default function PostPage() {
     return (
       <div className="app-container postpage-desktop-screen">
         <Navigation isLoggedIn={true} />
-        <main className="postpage-desktop-split-layout" style={{ justifyContent: 'center' }}>
+        <main className="postpage-desktop-split-layout postpage-empty-layout">
           <div className="search-empty-state">
             <p className="empty-title">Post not found</p>
             <button
               type="button"
-              className="wireframe-btn"
+              className="wireframe-btn postpage-return-btn"
               onClick={() => navigate('/home')}
-              style={{ marginTop: '16px' }}
             >
               Return Home
             </button>
@@ -184,13 +253,13 @@ export default function PostPage() {
     <div className="app-container postpage-desktop-screen">
       <Navigation isLoggedIn={true} />
 
-      <main className="postpage-desktop-split-layout">        
+      <main className="postpage-desktop-split-layout">
         <div className="postpage-desktop-left-col">
           <div className="postpage-main-image-container">
             {post.imageUrl ? (
-              <img
-                src={post.imageUrl}
-                alt={post.caption || 'Post image'}
+              <Image
+                imageValue={post.imageUrl}
+                altText={post.caption || 'Post image'}
                 className="postpage-main-image"
               />
             ) : (
@@ -198,7 +267,7 @@ export default function PostPage() {
             )}
           </div>
         </div>
-        
+
         <div className="postpage-desktop-right-col">
           <div className="postpage-sub-header">
             <div className="postpage-user-left">
@@ -231,17 +300,27 @@ export default function PostPage() {
               {showOptionsMenu && (
                 <div className="postpage-dropdown-menu">
                   {isOwner ? (
-                    <button
-                      type="button"
-                      className="dropdown-menu-item"
-                      onClick={() => {
-                        setShowOptionsMenu(false);
-                        setIsEditingPost(true);
-                      }}
-                    >
-                      <FiEdit2 className="dropdown-item-icon" />
-                      <span>Edit Post</span>
-                    </button>
+                    <>
+                      <button
+                        type="button"
+                        className="dropdown-menu-item"
+                        onClick={() => {
+                          setShowOptionsMenu(false);
+                          setIsEditingPost(true);
+                        }}
+                      >
+                        <FiEdit2 className="dropdown-item-icon" />
+                        <span>Edit Post</span>
+                      </button>
+                      <button
+                        type="button"
+                        className="dropdown-menu-item item-danger"
+                        onClick={handleDeletePost}
+                      >
+                        <FiTrash2 className="dropdown-item-icon" />
+                        <span>Delete Post</span>
+                      </button>
+                    </>
                   ) : (
                     <button
                       type="button"
@@ -289,10 +368,13 @@ export default function PostPage() {
               </p>
 
               <hr className="post-card-divider" />
-              
+
               <Comments
                 comments={post.comments || []}
+                currentUsername={loggedInUser.username}
                 onAddComment={handleAddComment}
+                onEditComment={handleEditComment}
+                onDeleteComment={handleDeleteComment}
               />
             </>
           )}

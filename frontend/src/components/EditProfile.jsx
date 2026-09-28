@@ -1,7 +1,8 @@
 import { useState, useRef } from 'react';
 import { FiUploadCloud, FiTrash2 } from 'react-icons/fi';
+import Image from './Image';
 
-export default function EditProfile({ profile, onSave, onCancel }) {
+export default function EditProfile({ profile, onSave, onCancel, onDelete }) {
   const [formData, setFormData] = useState({
     name: profile.name || '',
     pronouns: profile.pronouns || '',
@@ -155,9 +156,9 @@ export default function EditProfile({ profile, onSave, onCancel }) {
           >
             {formData.avatarUrl ? (
               <div className="avatar-preview-wrapper">
-                <img
-                  src={formData.avatarUrl}
-                  alt="Avatar preview"
+                <Image
+                  imageValue={formData.avatarUrl}
+                  altText="Avatar preview"
                   className="wf-profile-avatar-img"
                 />
                 <div className="avatar-overlay-actions">
@@ -191,6 +192,9 @@ export default function EditProfile({ profile, onSave, onCancel }) {
         </button>
         <button type="button" className="request-decline-btn edit-cancel-btn" onClick={onCancel}>
           Cancel
+        </button>
+        <button type="button" className="request-decline-btn edit-delete-btn" onClick={onDelete}>
+          Delete
         </button>
       </div>
     </form>

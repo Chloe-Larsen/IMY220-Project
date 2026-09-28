@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { FiUploadCloud, FiTrash2 } from 'react-icons/fi';
+import Image from './Image';
 
 export default function NewPost({ onPublish, onCancel }) {
   const [formData, setFormData] = useState({
@@ -100,9 +101,9 @@ export default function NewPost({ onPublish, onCancel }) {
           >
             {formData.imageUrl ? (
               <div className="avatar-preview-wrapper">
-                <img
-                  src={formData.imageUrl}
-                  alt="Post preview"
+                <Image
+                  imageValue={formData.imageUrl}
+                  altText="Post preview"
                   className="wf-profile-avatar-img"
                 />
                 <div className="avatar-overlay-actions">

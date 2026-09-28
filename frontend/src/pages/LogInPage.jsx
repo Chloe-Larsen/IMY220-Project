@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import logoImg from '../assets/logo.jpeg';
 import Footer from '../components/Footer';
 import Navigation from '../components/Navigation';
+import Image from '../components/Image';
 
 export default function LoginPage() {
     const navigate = useNavigate();
@@ -95,9 +96,9 @@ export default function LoginPage() {
                 </section>
 
                 <section className="login-right-pane">
-                    <img
-                        src={logoImg}
-                        alt="TipTap Showcase Logo"
+                    <Image
+                        imageValue={logoImg}
+                        altText="TipTap Showcase Logo"
                         className="login-graphic-preview"
                     />
                 </section>

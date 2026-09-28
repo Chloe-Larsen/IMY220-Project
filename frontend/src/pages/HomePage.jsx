@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
-import PostPreview from '../components/PostPreview';
+import PostList from '../components/PostList';
 import PostSkeleton from '../components/PostSkeleton';
 import Filters from '../components/Filters';
 
@@ -128,15 +128,7 @@ export default function HomePage() {
           </p>
         )}
 
-        {!loading && !error && posts.map((post, idx) => (
-          <div
-            key={post.id}
-            className="post-card-animated-wrapper"
-            style={{ animationDelay: `${idx * 0.15}s` }}
-          >
-            <PostPreview post={post} />
-          </div>
-        ))}
+        {!loading && !error && <PostList userPosts={posts}/>}
       </main>
 
       <Footer isLoggedIn={true} />

@@ -2,12 +2,16 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
-import PostPreview from '../components/PostPreview';
+import PostList from '../components/PostList';
 import PostSkeleton from '../components/PostSkeleton';
 import FriendList from '../components/FriendList';
 import Requests from '../components/Requests';
 import EditProfile from '../components/EditProfile';
-import NewPost from '../components/NewPost'
+import NewPost from '../components/NewPost';
+import NewAlbum from '../components/NewAlbum';
+import AlbumCard from '../components/AlbumCard';
+import AlbumDetail from '../components/AlbumDetail';
+import Image from '../components/Image';
 
 export default function ProfilePage() {
     const { id } = useParams();
@@ -18,11 +22,7 @@ export default function ProfilePage() {
         username: 'avian_chloe'
     };
 
-    if (!id) {
-        return <Navigate to={`/profile/${loggedInUser.username}`} replace />;
-    }
-
-    const targetUsername = id.toLowerCase();
+    const targetUsername = (id || loggedInUser.username).toLowerCase();
     const isOwnProfile = loggedInUser.username.toLowerCase() === targetUsername;
 
     const [profile, setProfile] = useState({
@@ -36,6 +36,13 @@ export default function ProfilePage() {
         friends: []
     });
 
+    const [postFeed, setPostFeed] = useState('posts');
+    const [relationshipStatus, setRelationshipStatus] = useState('Not Friends');
+    const [userPosts, setUserPosts] = useState([]);
+    const [userAlbums, setUserAlbums] = useState([]);
+    const [selectedAlbum, setSelectedAlbum] = useState(null);
+    const [loading, setLoading] = useState(true);
+
     const [pendingRequests, setPendingRequests] = useState([
         { id: '5', username: 'falconer_dan', name: 'Dan Jacobs' },
         { id: '6', username: 'pelican_pete', name: 'Peter Van Wyk' }
@@ -45,20 +52,21 @@ export default function ProfilePage() {
     const [showRequests, setShowRequests] = useState(false);
     const [showEditProfile, setShowEditProfile] = useState(false);
     const [showNewPost, setShowNewPost] = useState(false);
+    const [showNewAlbum, setShowNewAlbum] = useState(false);
 
-    const [relationshipStatus, setRelationshipStatus] = useState('Not Friends');
-    const [userPosts, setUserPosts] = useState([]);
-    const [loading, setLoading] = useState(true);
-
+    const canViewFullProfile = isOwnProfile || relationshipStatus === 'Friends';
     const canViewFriends = isOwnProfile || relationshipStatus === 'Friends';
 
     useEffect(() => {
         setShowFriendsList(false);
         setShowRequests(false);
         setShowEditProfile(false);
+        setShowNewPost(false);
+        setShowNewAlbum(false);
+        setSelectedAlbum(null);
         setLoading(true);
-        const startTime = Date.now();
 
+        const startTime = Date.now();        
         const fetchProfile = fetch(`http://localhost:5000/api/auth/profile/${encodeURIComponent(targetUsername)}`)
             .then((res) => (res.ok ? res.json() : null))
             .then((data) => {
@@ -89,7 +97,16 @@ export default function ProfilePage() {
                 setUserPosts(Array.isArray(posts) ? posts : []);
             });
 
-        Promise.allSettled([fetchProfile, fetchPosts]).then(() => {
+        const fetchAlbums = fetch(`http://localhost:5000/api/albums?user=${encodeURIComponent(targetUsername)}`)
+            .then((res) => (res.ok ? res.json() : []))
+            .then((albums) => {
+                setUserAlbums(Array.isArray(albums) ? albums : []);
+            })
+            .catch(() => {
+                setUserAlbums([]);
+            });
+
+        Promise.allSettled([fetchProfile, fetchPosts, fetchAlbums]).then(() => {
             const elapsedTime = Date.now() - startTime;
             const remainingTime = Math.max(0, 1000 - elapsedTime);
             setTimeout(() => setLoading(false), remainingTime);
@@ -100,44 +117,19 @@ export default function ProfilePage() {
         if (isOwnProfile) return;
 
         if (relationshipStatus === 'Friends') {
-            const confirmRemove = window.confirm(
-                `Are you sure you want to remove @${profile.username} as a friend?`
-            );
-            if (confirmRemove) setRelationshipStatus('Not Friends');
+            if (window.confirm(`Are you sure you want to remove @${profile.username} as a friend?`)) {
+                setRelationshipStatus('Not Friends');
+            }
         } else if (relationshipStatus === 'Friend Request Pending') {
-            const cancelRequest = window.confirm(
-                `Cancel pending friend request to @${profile.username}?`
-            );
-            if (cancelRequest) setRelationshipStatus('Not Friends');
+            if (window.confirm(`Cancel pending friend request to @${profile.username}?`)) {
+                setRelationshipStatus('Not Friends');
+            }
         } else if (relationshipStatus === 'Not Friends') {
             setRelationshipStatus('Friend Request Pending');
         }
     };
 
-    const handleSaveProfile = (updatedData) => {
-        setProfile((prev) => ({
-            ...prev,
-            ...updatedData
-        }));
-        setShowEditProfile(false);
-    };
-
-    const handleAcceptRequest = (requestId) => {
-        const acceptedUser = pendingRequests.find((r) => r.id === requestId);
-        if (acceptedUser) {
-            setProfile((prev) => ({
-                ...prev,
-                friends: [...prev.friends, acceptedUser]
-            }));
-            setPendingRequests((prev) => prev.filter((r) => r.id !== requestId));
-        }
-    };
-
-    const handleDeclineRequest = (requestId) => {
-        setPendingRequests((prev) => prev.filter((r) => r.id !== requestId));
-    };
-
-    const handlePublishPost = (newPostData) => {
+    const handlePublishPost = async (newPostData) => {
         const createdPost = {
             id: String(Date.now()),
             username: loggedInUser.username,
@@ -149,8 +141,126 @@ export default function ProfilePage() {
             comments: []
         };
 
+        try {
+            await fetch('http://localhost:5000/api/posts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(createdPost)
+            });
+        } catch {
+        }
+
         setUserPosts((prev) => [createdPost, ...prev]);
         setShowNewPost(false);
+    };
+
+    const handlePublishAlbum = async (newAlbumData) => {
+        const createdAlbum = {
+            id: String(Date.now()),
+            username: loggedInUser.username,
+            name: newAlbumData.name,
+            description: newAlbumData.description,
+            hashtags: newAlbumData.hashtags,
+            posts: []
+        };
+
+        try {
+            await fetch('http://localhost:5000/api/albums', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(createdAlbum)
+            });
+        } catch {
+        }
+
+        setUserAlbums((prev) => [createdAlbum, ...prev]);
+        setShowNewAlbum(false);
+    };
+
+    const handleUpdateAlbum = async (albumId, updatedData) => {
+        try {
+            await fetch(`http://localhost:5000/api/albums/${albumId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatedData)
+            });
+        } catch {
+            // Local fallback
+        }
+
+        const updater = (album) =>
+            album.id === albumId ? { ...album, ...updatedData } : album;
+
+        setUserAlbums((prev) => prev.map(updater));
+        if (selectedAlbum && selectedAlbum.id === albumId) {
+            setSelectedAlbum((prev) => ({ ...prev, ...updatedData }));
+        }
+    };
+
+    const handleDeleteAlbum = async (albumId) => {
+        if (!window.confirm('Are you sure you want to delete this album? Sightings inside will not be deleted.')) {
+            return;
+        }
+
+        try {
+            await fetch(`http://localhost:5000/api/albums/${albumId}`, { method: 'DELETE' });
+        } catch {
+            // Local fallback
+        }
+
+        setUserAlbums((prev) => prev.filter((a) => a.id !== albumId));
+        setSelectedAlbum(null);
+    };
+
+    const handleAddPostToAlbum = async (albumId, post) => {
+        try {
+            await fetch(`http://localhost:5000/api/albums/${albumId}/posts`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ postId: post.id })
+            });
+        } catch {
+        }
+
+        const addPost = (album) => {
+            if (album.id !== albumId) return album;
+            const current = album.posts || [];
+            return { ...album, posts: [...current, post] };
+        };
+
+        setUserAlbums((prev) => prev.map(addPost));
+        if (selectedAlbum && selectedAlbum.id === albumId) {
+            setSelectedAlbum((prev) => ({
+                ...prev,
+                posts: [...(prev.posts || []), post]
+            }));
+        }
+    };
+
+    const handleRemovePostFromAlbum = async (albumId, postId) => {
+        try {
+            await fetch(`http://localhost:5000/api/albums/${albumId}/posts/${postId}`, {
+                method: 'DELETE'
+            });
+        } catch {
+
+        }
+
+        const removePost = (album) => {
+            if (album.id !== albumId) return album;
+            return {
+                ...album,
+                posts: (album.posts || []).filter((p) => String(p.id) !== String(postId))
+            };
+        };
+
+        setUserAlbums((prev) => prev.map(removePost));
+        if (selectedAlbum && selectedAlbum.id === albumId) {
+            setSelectedAlbum((prev) => ({
+                ...prev,
+                posts: (prev.posts || []).filter((p) => String(p.id) !== String(postId))
+            }));
+        }
     };
 
     return (
@@ -168,8 +278,14 @@ export default function ProfilePage() {
                 <main className="profile-fullscreen-friendlist-container">
                     <Requests
                         requests={pendingRequests}
-                        onAccept={handleAcceptRequest}
-                        onDecline={handleDeclineRequest}
+                        onAccept={(id) => {
+                            const req = pendingRequests.find((r) => r.id === id);
+                            if (req) {
+                                setProfile((prev) => ({ ...prev, friends: [...prev.friends, req] }));
+                                setPendingRequests((prev) => prev.filter((r) => r.id !== id));
+                            }
+                        }}
+                        onDecline={(id) => setPendingRequests((prev) => prev.filter((r) => r.id !== id))}
                         onBack={() => setShowRequests(false)}
                     />
                 </main>
@@ -177,125 +293,188 @@ export default function ProfilePage() {
                 <main className="profile-fullscreen-friendlist-container">
                     <EditProfile
                         profile={profile}
-                        onSave={handleSaveProfile}
+                        onSave={(updated) => {
+                            setProfile((prev) => ({ ...prev, ...updated }));
+                            setShowEditProfile(false);
+                        }}
                         onCancel={() => setShowEditProfile(false)}
+                        onDelete={() => {
+                            localStorage.removeItem('user');
+                            navigate('/signup');
+                        }}
                     />
                 </main>
-            ) : showNewPost ? (                
+            ) : showNewPost ? (
                 <main className="profile-fullscreen-friendlist-container">
                     <NewPost
                         onPublish={handlePublishPost}
                         onCancel={() => setShowNewPost(false)}
                     />
                 </main>
-            ) :
-                (
-                    <main className="profile-wireframe-layout">
-                        <div className="profile-status-bar-row">
-                            {isOwnProfile ? (
-                                <span className="wf-status-text">Your Profile</span>
-                            ) : (
-                                <button
-                                    type="button"
-                                    className={`profile-status-btn status-${relationshipStatus
-                                        .toLowerCase()
-                                        .replace(/\s+/g, '-')}`}
-                                    onClick={handleStatusClick}
-                                >
-                                    {relationshipStatus}
-                                </button>
-                            )}
+            ) : showNewAlbum ? (
+                <main className="profile-fullscreen-friendlist-container">
+                    <NewAlbum
+                        onPublish={handlePublishAlbum}
+                        onCancel={() => setShowNewAlbum(false)}
+                    />
+                </main>
+            ) : selectedAlbum ? (
+                <main className="profile-fullscreen-friendlist-container">
+                    <AlbumDetail
+                        album={selectedAlbum}
+                        isOwnProfile={isOwnProfile}
+                        allUserPosts={userPosts}
+                        onBack={() => setSelectedAlbum(null)}
+                        onUpdateAlbum={handleUpdateAlbum}
+                        onDeleteAlbum={handleDeleteAlbum}
+                        onAddPostToAlbum={handleAddPostToAlbum}
+                        onRemovePostFromAlbum={handleRemovePostFromAlbum}
+                    />
+                </main>
+            ) : (
+                <main className="profile-wireframe-layout">
+                    <div className="profile-status-bar-row">
+                        {isOwnProfile ? (
+                            <span className="wf-status-text">Your Profile</span>
+                        ) : (
+                            <button
+                                type="button"
+                                className={`profile-status-btn status-${relationshipStatus
+                                    .toLowerCase()
+                                    .replace(/\s+/g, '-')}`}
+                                onClick={handleStatusClick}
+                            >
+                                {relationshipStatus}
+                            </button>
+                        )}
 
-                            <span className="wf-username-text">
-                                {profile.username || 'Username'}
-                            </span>
-                        </div>
+                        <span className="wf-username-text">
+                            {profile.username || 'Username'}
+                        </span>
+                    </div>
 
-                        <section className="profile-bio-hero-section">
-                            <div className="profile-left-bio-pane">
+                    <section className="profile-bio-hero-section">
+                        <div className="profile-left-bio-pane">
+                            {canViewFriends && (
                                 <div className="wf-friends-count-container">
                                     <button
                                         type="button"
-                                        className={`wf-friends-count-btn ${canViewFriends ? 'active' : 'disabled'}`}
-                                        onClick={() => canViewFriends && setShowFriendsList(true)}
-                                        disabled={!canViewFriends}
-                                        title={canViewFriends ? 'Click to view friends' : 'Friends list is private'}
+                                        className="wf-friends-count-btn active"
+                                        onClick={() => setShowFriendsList(true)}
                                     >
-                                        <strong>{profile.friends?.length || '##'}</strong> Friends
+                                        <strong>{profile.friends?.length || 0}</strong> Friends
                                     </button>
                                     <div className="wf-friends-underline" />
                                 </div>
+                            )}
 
-                                <div className="wf-bio-details-stack">
-                                    <div className="wf-bio-entry">
-                                        <span className="wf-bio-key">Name</span>
-                                        <span className="wf-bio-val">{profile.name}</span>
-                                    </div>
-                                    <div className="wf-bio-entry">
-                                        <span className="wf-bio-key text-pronouns">Pronouns</span>
-                                        <span className="wf-bio-val text-pronouns">{profile.pronouns}</span>
-                                    </div>
-                                    <div className="wf-bio-entry">
-                                        <span className="wf-bio-key text-links">Links</span>
-                                        <a
-                                            href={`https://${profile.links}`}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="wf-bio-val text-links"
-                                        >
-                                            {profile.links}
-                                        </a>
-                                    </div>
-                                    <div className="wf-bio-entry wf-bio-block">
-                                        <span className="wf-bio-key">Bio</span>
-                                        <p className="wf-bio-val wf-bio-desc">{profile.bio}</p>
-                                    </div>
+                            <div className="wf-bio-details-stack">
+                                <div className="wf-bio-entry">
+                                    <span className="wf-bio-key">Name</span>
+                                    <span className="wf-bio-val">{profile.name}</span>
                                 </div>
-                            </div>
 
-                            <div className="wf-profile-picture-container">
-                                {profile.avatarUrl ? (
-                                    <img
-                                        src={profile.avatarUrl}
-                                        alt={profile.username}
-                                        className="wf-profile-avatar-img"
-                                    />
-                                ) : (
-                                    <div className="wf-profile-avatar-placeholder" />
+                                {canViewFullProfile && (
+                                    <>
+                                        <div className="wf-bio-entry">
+                                            <span className="wf-bio-key text-pronouns">Pronouns</span>
+                                            <span className="wf-bio-val text-pronouns">{profile.pronouns}</span>
+                                        </div>
+                                        {profile.links && (
+                                            <div className="wf-bio-entry">
+                                                <span className="wf-bio-key text-links">Links</span>
+                                                <a
+                                                    href={`https://${profile.links}`}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="wf-bio-val text-links"
+                                                >
+                                                    {profile.links}
+                                                </a>
+                                            </div>
+                                        )}
+                                        <div className="wf-bio-entry wf-bio-block">
+                                            <span className="wf-bio-key">Bio</span>
+                                            <p className="wf-bio-val wf-bio-desc">{profile.bio}</p>
+                                        </div>
+                                    </>
                                 )}
                             </div>
-                        </section>
+                        </div>
 
-                        {isOwnProfile && (
-                            <div className="wf-profile-actions-bar">
+                        <div className="wf-profile-picture-container">
+                            {profile.avatarUrl ? (
+                                <Image
+                                    imageValue={profile.avatarUrl}
+                                    altText={profile.username}
+                                    className="wf-profile-avatar-img"
+                                />
+                            ) : (
+                                <div className="wf-profile-avatar-placeholder" />
+                            )}
+                        </div>
+                    </section>
+
+                    {isOwnProfile && (
+                        <div className="wf-profile-actions-bar">
+                            <button
+                                type="button"
+                                className="wireframe-btn wf-btn"
+                                onClick={() => setShowRequests(true)}
+                            >
+                                Requests {pendingRequests.length > 0 && `(${pendingRequests.length})`}
+                            </button>
+                            <button
+                                type="button"
+                                className="wireframe-btn wf-btn"
+                                onClick={() => setShowEditProfile(true)}
+                            >
+                                Edit Profile
+                            </button>
+                        </div>
+                    )}
+
+                    <hr className="wf-profile-full-divider" />
+                    {canViewFullProfile && (
+                        <div className="wf-posts-album-action-bar">
+                            <div className="home-feed-toggle-group">
                                 <button
-                                    type="button"
-                                    className="wireframe-btn wf-btn"
-                                    onClick={() => setShowNewPost(true)}
+                                    className={`feed-switch-btn ${postFeed === 'posts' ? 'active' : ''}`}
+                                    onClick={() => setPostFeed('posts')}
                                 >
-                                    Make Post
+                                    Posts
                                 </button>
+                                <span className="feed-switch-divider">|</span>
                                 <button
-                                    type="button"
-                                    className="wireframe-btn wf-btn"
-                                    onClick={() => setShowRequests(true)}
+                                    className={`feed-switch-btn ${postFeed === 'albums' ? 'active' : ''}`}
+                                    onClick={() => setPostFeed('albums')}
                                 >
-                                    Requests {pendingRequests.length > 0 && `(${pendingRequests.length})`}
-                                </button>
-                                <button
-                                    type="button"
-                                    className="wireframe-btn wf-btn"
-                                    onClick={() => setShowEditProfile(true)}
-                                >
-                                    Edit Profile
+                                    Albums
                                 </button>
                             </div>
-                        )}
 
-                        {/* Horizontal Divider Line */}
-                        <hr className="wf-profile-full-divider" />
-
-                        {/* 3-Column Posts Grid */}
+                            {isOwnProfile && (
+                                postFeed === 'posts' ? (
+                                    <button
+                                        type="button"
+                                        className="wireframe-btn wf-btn"
+                                        onClick={() => setShowNewPost(true)}
+                                    >
+                                        Create Post
+                                    </button>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        className="wireframe-btn wf-btn"
+                                        onClick={() => setShowNewAlbum(true)}
+                                    >
+                                        Create Album
+                                    </button>
+                                )
+                            )}
+                        </div>
+                    )}
+                    {canViewFullProfile && (
                         <section className="profile-three-col-grid">
                             {loading && (
                                 <>
@@ -305,23 +484,31 @@ export default function ProfilePage() {
                                 </>
                             )}
 
-                            {!loading && userPosts.length === 0 && (
-                                <p className="profile-no-posts-text">No posts available.</p>
+                            {!loading && postFeed === 'posts' && (
+                                userPosts.length === 0 ? (
+                                    <p className="profile-no-posts-text">No posts available.</p>
+                                ) : (
+                                    <PostList userPosts={userPosts} />
+                                )
                             )}
 
-                            {!loading &&
-                                userPosts.map((post, idx) => (
-                                    <div
-                                        key={post.id}
-                                        className="post-card-animated-wrapper"
-                                        style={{ animationDelay: `${idx * 0.1}s` }}
-                                    >
-                                        <PostPreview post={post} />
-                                    </div>
-                                ))}
+                            {!loading && postFeed === 'albums' && (
+                                userAlbums.length === 0 ? (
+                                    <p className="profile-no-posts-text">No albums created yet.</p>
+                                ) : (
+                                    userAlbums.map((album) => (
+                                        <AlbumCard
+                                            key={album.id}
+                                            album={album}
+                                            onSelectAlbum={(alb) => setSelectedAlbum(alb)}
+                                        />
+                                    ))
+                                )
+                            )}
                         </section>
-                    </main>
-                )}
+                    )}
+                </main>
+            )}
 
             <Footer isLoggedIn={true} />
         </div>

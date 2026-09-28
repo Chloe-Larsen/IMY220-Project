@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import logoImg from '../assets/logo.jpeg';
 import Footer from '../components/Footer';
 import Navigation from '../components/Navigation'
+import Image from '../components/Image';
 
 
 export default function SplashPage() {
@@ -34,7 +35,11 @@ export default function SplashPage() {
 
         <section className="splash-hero-right">
           <div className="splash-placeholder-graphic">
-            <img src={logoImg} alt="TipTap Logo" className="nav-logo-image" style={{ height: '420px', width: 'auto' }} />
+            <Image
+              imageValue={logoImg}
+              altText="TipTap Logo"
+              className="splash-logo-image"
+            />            
           </div>
         </section>
       </main>

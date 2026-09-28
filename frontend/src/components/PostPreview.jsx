@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FiHeart, FiClock } from 'react-icons/fi';
+import Image from './Image';
 
 export default function PostPreview({ post }) {
     const navigate = useNavigate();
@@ -45,7 +46,7 @@ export default function PostPreview({ post }) {
         <article className="feed-post-card">
             <Link to={`/post/${post.id}`} className="post-image-container">
                 {post.imageUrl ? (
-                    <img src={post.imageUrl} alt={post.caption} className="post-photo-img" />
+                    <Image imageValue={post.imageUrl} alt={post.caption} className="post-photo-img" />
                 ) : (
                     <div className="post-image-placeholder" />
                 )}
