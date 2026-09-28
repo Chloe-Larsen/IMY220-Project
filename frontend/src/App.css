@@ -2341,3 +2341,88 @@ body {
   gap: 12px;
   margin-top: 16px;
 }
+
+/*----------------- Activity Page -----------------*/
+.activity-type-filters {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.activity-filter-pill {
+  background: none;
+  border: 1px solid #66815D;
+  border-radius: 16px;
+  padding: 4px 12px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: var(--text-muted, #2F2D2E);
+  transition: all 0.15s ease;
+}
+
+.activity-filter-pill.active {
+  background-color:  #66815D;
+  color: #ffffff;
+  border-color: #66815D;
+}
+
+.activity-type-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: var(--text-muted, #57606a);
+  font-weight: 500;
+}
+
+.activity-album-media-box {
+  cursor: pointer;
+  height: 220px;
+  overflow: hidden;
+}
+
+.activity-multi-photo-grid {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  gap: 2px;
+}
+
+.activity-photo-cell {
+  flex: 1;
+  height: 100%;
+  overflow: hidden;
+}
+
+.activity-photo-cell .post-photo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.activity-caption-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.activity-action-text {
+  font-size: 0.8rem;
+  color: var(--text-muted, #7b8377);
+  font-style: italic;
+}
+
+.activity-action-text strong {
+  color: var(--text-main, #333);
+  font-style: normal;
+}
+
+.activity-type-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  text-decoration: none;
+  font-size: 0.85rem;
+  color: var(--text-muted, #7b8377);
+}
