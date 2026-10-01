@@ -26,7 +26,7 @@ router.get('/', async (req, res) => {
 
     const albums = await db.collection('albums').aggregate([
       { $match: filter },
-      { $sort: { createdAt: -1 } },      
+      { $sort: { createdAt: -1 } },
       {
         $lookup: {
           from: 'albumPosts',
@@ -37,7 +37,7 @@ router.get('/', async (req, res) => {
           ],
           as: 'albumPostLinks'
         }
-      },      
+      },
       {
         $lookup: {
           from: 'posts',
@@ -45,7 +45,7 @@ router.get('/', async (req, res) => {
           foreignField: '_id',
           as: 'photos'
         }
-      },      
+      },
       {
         $lookup: {
           from: 'users',
@@ -63,7 +63,7 @@ router.get('/', async (req, res) => {
           updatedAt: 1,
           username: { $arrayElemAt: ['$owner.username', 0] },
           photoCount: { $size: '$albumPostLinks' },
-          coverImage: { $ifNull: [{ $arrayElemAt: ['$photos.imageUrl', 0] }, null] },          
+          coverImage: { $ifNull: [{ $arrayElemAt: ['$photos.imageUrl', 0] }, null] },
           posts: {
             $map: {
               input: '$photos',
@@ -192,7 +192,7 @@ router.post('/', async (req, res) => {
     };
 
     const result = await db.collection('albums').insertOne(newAlbum);
-    
+
     await db.collection('activities').insertOne({
       actorId: user._id,
       actionType: 'created_album',
@@ -230,7 +230,7 @@ router.post('/:id/posts', async (req, res) => {
 
     const post = await db.collection('posts').findOne({ _id: postObjectId });
     if (!post) return res.status(404).json({ message: 'Post not found.' });
-    
+
     const exists = await db.collection('albumPosts').findOne({
       albumId: albumObjectId,
       postId: postObjectId
@@ -245,7 +245,7 @@ router.post('/:id/posts', async (req, res) => {
       postId: postObjectId,
       addedAt: new Date()
     });
-    
+
     await db.collection('albums').updateOne(
       { _id: albumObjectId },
       { $set: { updatedAt: new Date() } }
@@ -293,7 +293,7 @@ router.delete('/:id', async (req, res) => {
   try {
     const db = getDB();
     const albumObjectId = new ObjectId(id);
-    
+
     await db.collection('albums').deleteOne({ _id: albumObjectId });
     await db.collection('albumPosts').deleteMany({ albumId: albumObjectId });
     await db.collection('activities').deleteMany({ albumId: albumObjectId });
@@ -302,6 +302,53 @@ router.delete('/:id', async (req, res) => {
   } catch (error) {
     console.error('Error deleting album:', error);
     return res.status(500).json({ message: 'Error deleting album', error: error.message });
+  }
+});
+
+// PUT /api/albums/:id
+router.put('/:id', async (req, res) => {
+  const { id } = req.params;
+  const { name, description, hashtags } = req.body;
+
+  if (!ObjectId.isValid(id)) {
+    return res.status(400).json({ message: 'Invalid Album ID.' });
+  }
+
+  if (name !== undefined && !name.trim()) {
+    return res.status(400).json({ message: 'Album name cannot be empty.' });
+  }
+
+  try {
+    const db = getDB();
+    const updateFields = {
+      updatedAt: new Date()
+    };
+
+    if (name !== undefined) updateFields.name = String(name).trim();
+    if (description !== undefined) updateFields.description = String(description).trim();
+    if (hashtags !== undefined) {
+      if (Array.isArray(hashtags)) {
+        updateFields.hashtags = hashtags;
+      } else if (typeof hashtags === 'string') {        
+        updateFields.hashtags = hashtags.trim() ? hashtags.trim().split(/\s+/) : [];
+      }
+    }
+
+    const result = await db.collection('albums').updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updateFields }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ message: 'Album not found.' });
+    }
+
+    return res.status(200).json({ message: 'Album updated successfully.' });
+  } catch (error) {
+    if (error.errInfo?.details?.schemaRulesNotSatisfied) {
+      console.dir(error.errInfo.details.schemaRulesNotSatisfied, { depth: null });
+    }
+    return res.status(500).json({ message: 'Error updating album', error: error.message });
   }
 });
 

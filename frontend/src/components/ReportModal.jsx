@@ -1,19 +1,17 @@
 import { useState, useEffect } from 'react';
 import { FiAlertCircle, FiX } from 'react-icons/fi';
 
-export default function ReportModal({ postId, onClose, onSubmitSuccess }) {
+export default function ReportModal({ postId, currentUsername, onClose, onSubmitSuccess }) {
     const [reasons, setReasons] = useState([]);
     const [selectedReason, setSelectedReason] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [submitting, setSubmitting] = useState(false);
 
-    const loggedInUser = JSON.parse(localStorage.getItem('user')) || {
-        username: 'avian_chloe'
-    };
+    const activeUsername = currentUsername || JSON.parse(localStorage.getItem('user'))?.username;    
 
     useEffect(() => {
-        fetch('/api/admin/report-reasons')
+        fetch('http://localhost:5000/api/admin/report-reasons')
             .then((res) => {
                 if (!res.ok) throw new Error('Failed to load reasons');
                 return res.json();
@@ -24,16 +22,7 @@ export default function ReportModal({ postId, onClose, onSubmitSuccess }) {
                 if (list.length > 0) setSelectedReason(list[0].reason || list[0]);
                 setLoading(false);
             })
-            .catch(() => {
-                // Fallback default reasons if database route isn't set up yet
-                const fallback = [
-                    { id: '1', reason: 'Inappropriate content / spam' },
-                    { id: '2', reason: 'Harassment or hate speech' },
-                    { id: '3', reason: 'Non-avian / irrelevant submission' },
-                    { id: '4', reason: 'Copyright or stolen photograph' }
-                ];
-                setReasons(fallback);
-                setSelectedReason(fallback[0].reason);
+            .catch(() => {                                
                 setLoading(false);
             });
     }, []);
@@ -49,11 +38,11 @@ export default function ReportModal({ postId, onClose, onSubmitSuccess }) {
         setError('');
 
         try {
-            const res = await fetch(`/api/posts/${postId}/report`, {
+            const res = await fetch(`http://localhost:5000/api/posts/${postId}/report`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    reporter: loggedInUser.username,
+                    reporter: activeUsername,
                     reason: selectedReason
                 })
             });
@@ -65,8 +54,8 @@ export default function ReportModal({ postId, onClose, onSubmitSuccess }) {
                 setError(data.message || 'Failed to submit report.');
             }
         } catch {
-            // Simulate client success fallback
-            onSubmitSuccess();
+            console.error('Error submitting report:', err);
+            setError('Network error: Could not reach the backend server.');
         } finally {
             setSubmitting(false);
         }

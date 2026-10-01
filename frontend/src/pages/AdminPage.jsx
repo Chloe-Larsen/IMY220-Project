@@ -28,9 +28,9 @@ export default function AdminPage() {
         setError('');
         const startTime = Date.now();
 
-        let endpoint = '/api/admin/report-reasons';
-        if (activeTab === 'reports') endpoint = '/api/admin/reports';
-        if (activeTab === 'users') endpoint = '/api/admin/users';
+        let endpoint = 'http://localhost:5000/api/admin/report-reasons';
+        if (activeTab === 'reports') endpoint = 'http://localhost:5000/api/admin/reports';
+        if (activeTab === 'users') endpoint = 'http://localhost:5000/api/admin/users';
 
         try {
             const res = await fetch(endpoint);
@@ -51,31 +51,7 @@ export default function AdminPage() {
             const remaining = Math.max(0, 800 - elapsed);
 
             setTimeout(() => {
-                if (activeTab === 'reasons') {
-                    setReasons([
-                        { id: '1', reason: 'Inappropriate content / spam' },
-                        { id: '2', reason: 'Harassment or hate speech' },
-                        { id: '3', reason: 'Non-avian / irrelevant submission' },
-                        { id: '4', reason: 'Copyright or stolen photograph' }
-                    ]);
-                } else if (activeTab === 'reports') {
-                    setReports([
-                        {
-                            id: 'rep-1',
-                            postId: '101',
-                            reporter: 'falconer_dan',
-                            reason: 'Non-avian / irrelevant submission',
-                            postCaption: 'Suspected domestic animal photo',
-                            postUsername: 'unknown_birder'
-                        }
-                    ]);
-                } else {
-                    setUsers([
-                        { id: '1', username: 'avian_chloe', email: 'chloe@tiptap.org', role: 'admin' },
-                        { id: '5', username: 'falconer_dan', email: 'dan@tiptap.org', role: 'user' },
-                        { id: '6', username: 'pelican_pete', email: 'pete@tiptap.org', role: 'user' }
-                    ]);
-                }
+                setError('Failed to retrieve data from server.');
                 setLoading(false);
             }, remaining);
         }
@@ -88,15 +64,21 @@ export default function AdminPage() {
         const reasonPayload = { reason: newReason.trim() };
 
         try {
-            const res = await fetch('/api/admin/report-reasons', {
+            const res = await fetch('http://localhost:5000/api/admin/report-reasons', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(reasonPayload)
             });
             const data = await res.json();
-            setReasons((prev) => [...prev, data.reason || { id: String(Date.now()), ...reasonPayload }]);
+            if (res.ok) {
+                setReasons((prev) => [...prev, data.reason]);
+                setNewReason('');
+                showStatus('New report reason successfully added to database.');
+            } else {
+                showStatus(data.message || 'Failed to add reason.');
+            }
         } catch {
-            setReasons((prev) => [...prev, { id: String(Date.now()), ...reasonPayload }]);
+            showStatus('Failed to connect to server.');
         }
 
         setNewReason('');
@@ -107,24 +89,27 @@ export default function AdminPage() {
         if (!window.confirm('Delete this report reason?')) return;
 
         try {
-            await fetch(`/api/admin/report-reasons/${reasonId}`, { method: 'DELETE' });
+            const res = await fetch(`http://localhost:5000/api/admin/report-reasons/${reasonId}`, { method: 'DELETE' });
+            if (res.ok) {
+                setReasons((prev) => prev.filter((r) => r.id !== reasonId));
+                showStatus('Report reason removed.');
+            }
         } catch {
-
+            showStatus('Failed to delete reason.');
         }
-
-        setReasons((prev) => prev.filter((r) => r.id !== reasonId));
-        showStatus('Report reason removed.');
     };
 
 
     const handleDismissReport = async (reportId) => {
         try {
-            await fetch(`/api/admin/reports/${reportId}`, { method: 'DELETE' });
+            const res = await fetch(`http://localhost:5000/api/admin/reports/${reportId}`, { method: 'DELETE' });
+            if (res.ok) {
+                setReports((prev) => prev.filter((r) => r.id !== reportId));
+                showStatus(`Report #${reportId} dismissed.`);
+            }
         } catch {
-
+            showStatus('Failed to dismiss report.');
         }
-        setReports((prev) => prev.filter((r) => r.id !== reportId));
-        showStatus(`Report #${reportId} dismissed.`);
     };
 
     const handleDeleteReportedPost = async (postId, reportId) => {
@@ -133,37 +118,40 @@ export default function AdminPage() {
         }
 
         try {
-            await fetch(`/api/posts/${postId}`, { method: 'DELETE' });
-            await fetch(`/api/admin/reports/${reportId}`, { method: 'DELETE' });
+            const postRes = await fetch(`http://localhost:5000/api/posts/${postId}`, { method: 'DELETE' });
+            if (postRes.ok) {
+                setReports((prev) => prev.filter((r) => r.id !== reportId));
+                showStatus(`Post #${postId} deleted and report resolved.`);
+            }
         } catch {
+            showStatus('Failed to delete post.');
         }
-
-        setReports((prev) => prev.filter((r) => r.id !== reportId));
-        showStatus(`Post #${postId} deleted and report resolved.`);
     };
-    
+
     const handleSuspendUser = async (userId, username) => {
         if (!window.confirm(`Are you sure you want to suspend @${username}?`)) return;
 
         try {
-            await fetch(`/api/admin/users/${userId}`, { method: 'DELETE' });
-        } catch {            
+            const res = await fetch(`http://localhost:5000/api/admin/users/${userId}`, { method: 'DELETE' });
+            if (res.ok) {
+                setUsers((prev) => prev.filter((u) => u.id !== userId));
+                showStatus(`User @${username} account suspended.`);
+            }
+        } catch {
+            showStatus('Failed to suspend user.');
         }
-
-        setUsers((prev) => prev.filter((u) => u.id !== userId));
-        showStatus(`User @${username} account suspended.`);
     };
 
     return (
         <div className="app-container profile-desktop-screen">
-            <Navigation admin={true}/>
+            <Navigation admin={true} />
 
             <main className="profile-wireframe-layout admin-console-layout">
                 <div className="profile-status-bar-row">
                     <span className="wf-status-text">TipTap Administrator Console</span>
                     <span className="wf-username-text">System Oversight</span>
                 </div>
-                
+
                 <div className="home-subbar admin-tabs-subbar">
                     <div className="home-feed-toggle-group">
                         <button
@@ -191,7 +179,7 @@ export default function AdminPage() {
                         </button>
                     </div>
                 </div>
-                
+
                 {statusMessage && (
                     <div className="admin-status-toast">
                         <FiCheckCircle className="toast-icon" />
@@ -347,7 +335,7 @@ export default function AdminPage() {
                 )}
             </main>
 
-            <Footer  />
+            <Footer />
         </div>
     );
 }

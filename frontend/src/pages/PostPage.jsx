@@ -408,6 +408,7 @@ export default function PostPage() {
       {showReportModal && (
         <ReportModal
           postId={id}
+          currentUsername={loggedInUser.username}
           onClose={() => setShowReportModal(false)}
           onSubmitSuccess={() => {
             setShowReportModal(false);

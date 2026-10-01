@@ -353,15 +353,15 @@ router.post('/:id/report', async (req, res) => {
       return res.status(400).json({ message: 'Invalid reporter or report reason.' });
     }
 
-    await db.collection('post_reports').insertOne({
+    await db.collection('reports').insertOne({
       postId,
       reporterId: user._id,
       reasonId: reasonDoc._id,
       reportedAt: new Date()
     });
 
-    const reportCount = await db.collection('post_reports').countDocuments({ postId });
-    if (reportCount > 2) {
+    const reportCount = await db.collection('reports').countDocuments({ postId });
+    if (reportCount >= 2) {
       await db.collection('posts').updateOne(
         { _id: postId },
         { $set: { isReportedHidden: true } }
