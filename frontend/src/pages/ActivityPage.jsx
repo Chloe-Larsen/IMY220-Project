@@ -17,12 +17,8 @@ export default function ActivityPage() {
     setLoading(true);
     setError('');
     const startTime = Date.now();
-
-    const endpoint = feedScope === 'local'
-      ? `http://localhost:5000/api/activities?feed=local&user=${encodeURIComponent(loggedInUser.username)}`
-      : `http://localhost:5000/api/activities?feed=global`;
-
-    fetch(endpoint)
+    
+    fetch(`http://localhost:5000/api/activity?scope=${feedScope}`)
       .then((res) => {
         if (!res.ok) throw new Error(`Status: ${res.status}`);
         return res.json();
@@ -53,7 +49,7 @@ export default function ActivityPage() {
     <div className="app-container home-desktop-screen">
       <Navigation isActivity={true} />
 
-      <main className="activity-page-main">
+      <main className="activity-page-main">        
         <div className="home-subbar">
           <div className="home-feed-toggle-group">
             <button
@@ -72,7 +68,7 @@ export default function ActivityPage() {
               Global Activity
             </button>
           </div>
-
+          
           <div className="activity-type-filters">
             <button
               type="button"
@@ -97,7 +93,7 @@ export default function ActivityPage() {
             </button>
           </div>
         </div>
-
+        
         <section className="home-post-grid-container">
           {loading && (
             <>
@@ -125,7 +121,7 @@ export default function ActivityPage() {
         </section>
       </main>
 
-      <Footer />
+      <Footer  />
     </div>
   );
 }
