@@ -8,10 +8,19 @@ export default function Footer() {
     const isLoggedIn = loggedInUser ? true : false;
     const isUserAdmin = loggedInUser && loggedInUser.role ? loggedInUser.role === "admin" : false;
 
-    const handleLogout = () => {
-        localStorage.removeItem('token');
-        sessionStorage.removeItem('token');
-        navigate('/');
+    const handleLogout = async () => {
+        try {
+            await fetch('http://localhost:5000/api/auth/logout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+        } catch (err) {
+            console.error('Network error during backend logout:', err);
+        } finally {            
+            localStorage.removeItem('user');
+            localStorage.removeItem('token');            
+            navigate('/');
+        }
     };
 
     return (

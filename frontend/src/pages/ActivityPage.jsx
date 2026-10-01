@@ -5,9 +5,7 @@ import PostSkeleton from '../components/PostSkeleton';
 import ActivityCard from '../components/ActivityCard';
 
 export default function ActivityPage() {
-  const loggedInUser = JSON.parse(localStorage.getItem('user')) || {
-    username: 'avian_chloe'
-  };
+  const loggedInUser = JSON.parse(localStorage.getItem('user'));
 
   const [feedScope, setFeedScope] = useState('local');
   const [filterType, setFilterType] = useState('all');
@@ -19,8 +17,12 @@ export default function ActivityPage() {
     setLoading(true);
     setError('');
     const startTime = Date.now();
-    
-    fetch(`http://localhost:5000/api/activity?scope=${feedScope}`)
+
+    const endpoint = feedScope === 'local'
+      ? `http://localhost:5000/api/activities?feed=local&user=${encodeURIComponent(loggedInUser.username)}`
+      : `http://localhost:5000/api/activities?feed=global`;
+
+    fetch(endpoint)
       .then((res) => {
         if (!res.ok) throw new Error(`Status: ${res.status}`);
         return res.json();
@@ -51,7 +53,7 @@ export default function ActivityPage() {
     <div className="app-container home-desktop-screen">
       <Navigation isActivity={true} />
 
-      <main className="activity-page-main">        
+      <main className="activity-page-main">
         <div className="home-subbar">
           <div className="home-feed-toggle-group">
             <button
@@ -70,7 +72,7 @@ export default function ActivityPage() {
               Global Activity
             </button>
           </div>
-          
+
           <div className="activity-type-filters">
             <button
               type="button"
@@ -95,7 +97,7 @@ export default function ActivityPage() {
             </button>
           </div>
         </div>
-        
+
         <section className="home-post-grid-container">
           {loading && (
             <>
@@ -123,7 +125,7 @@ export default function ActivityPage() {
         </section>
       </main>
 
-      <Footer  />
+      <Footer />
     </div>
   );
 }

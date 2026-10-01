@@ -88,6 +88,24 @@ export default function ProfilePage() {
                 }
             });
 
+        const fetchFriendshipStatus = !isOwnProfile
+            ? fetch(`http://localhost:5000/api/friends/status?user1=${encodeURIComponent(loggedInUser.username)}&user2=${encodeURIComponent(targetUsername)}`)
+                .then((res) => (res.ok ? res.json() : null))
+                .then((data) => {
+                    if (data?.status) {
+                        setRelationshipStatus(data.status);
+                    }
+                })
+                .catch(() => setRelationshipStatus('Not Friends'))
+            : Promise.resolve();
+
+        const fetchRequests = isOwnProfile
+            ? fetch(`http://localhost:5000/api/friends/requests?user=${encodeURIComponent(loggedInUser.username)}`)
+                .then((res) => (res.ok ? res.json() : []))
+                .then((reqs) => setPendingRequests(Array.isArray(reqs) ? reqs : []))
+                .catch(() => setPendingRequests([]))
+            : Promise.resolve();
+
         const fetchPosts = fetch(`http://localhost:5000/api/posts?q=${encodeURIComponent(targetUsername)}`)
             .then((res) => (res.ok ? res.json() : []))
             .then((posts) => {
@@ -103,26 +121,62 @@ export default function ProfilePage() {
                 setUserAlbums([]);
             });
 
-        Promise.allSettled([fetchProfile, fetchPosts, fetchAlbums]).then(() => {
+        Promise.allSettled([fetchProfile, fetchFriendshipStatus, fetchRequests, fetchPosts, fetchAlbums]).then(() => {
             const elapsedTime = Date.now() - startTime;
             const remainingTime = Math.max(0, 1000 - elapsedTime);
             setTimeout(() => setLoading(false), remainingTime);
         });
     }, [targetUsername, loggedInUser.username]);
 
-    const handleStatusClick = () => {
+    const handleStatusClick = async () => {
         if (isOwnProfile) return;
 
         if (relationshipStatus === 'Friends') {
             if (window.confirm(`Are you sure you want to remove @${profile.username} as a friend?`)) {
-                setRelationshipStatus('Not Friends');
+                try {
+                    await fetch('http://localhost:5000/api/friends/remove', {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            user1: loggedInUser.username,
+                            user2: profile.username
+                        })
+                    });
+                    setRelationshipStatus('Not Friends');
+                } catch (err) {
+                    console.error('Failed to unfriend:', err);
+                }
             }
         } else if (relationshipStatus === 'Friend Request Pending') {
             if (window.confirm(`Cancel pending friend request to @${profile.username}?`)) {
-                setRelationshipStatus('Not Friends');
+                try {
+                    await fetch('http://localhost:5000/api/friends/decline', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            sender: loggedInUser.username,
+                            recipient: profile.username
+                        })
+                    });
+                    setRelationshipStatus('Not Friends');
+                } catch (err) {
+                    console.error('Failed to cancel request:', err);
+                }
             }
         } else if (relationshipStatus === 'Not Friends') {
-            setRelationshipStatus('Friend Request Pending');
+            try {
+                await fetch('http://localhost:5000/api/friends/request', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        sender: loggedInUser.username,
+                        recipient: profile.username
+                    })
+                });
+                setRelationshipStatus('Friend Request Pending');
+            } catch (err) {
+                console.error('Failed to send friend request:', err);
+            }
         }
     };
 
@@ -161,7 +215,7 @@ export default function ProfilePage() {
                 })
             });
 
-            if (res.ok) {                
+            if (res.ok) {
                 const albumsRes = await fetch(`http://localhost:5000/api/albums?user=${encodeURIComponent(targetUsername)}`);
                 if (albumsRes.ok) {
                     const refreshedAlbums = await albumsRes.json();
@@ -319,14 +373,34 @@ export default function ProfilePage() {
                 <main className="profile-fullscreen-friendlist-container">
                     <Requests
                         requests={pendingRequests}
-                        onAccept={(id) => {
-                            const req = pendingRequests.find((r) => r.id === id);
-                            if (req) {
-                                setProfile((prev) => ({ ...prev, friends: [...prev.friends, req] }));
-                                setPendingRequests((prev) => prev.filter((r) => r.id !== id));
+                        onAccept={async (requestId) => {
+                            try {
+                                await fetch('http://localhost:5000/api/friends/accept', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ requestId })
+                                });
+                                const req = pendingRequests.find((r) => r.id === requestId);
+                                if (req) {
+                                    setProfile((prev) => ({ ...prev, friends: [...prev.friends, req] }));
+                                    setPendingRequests((prev) => prev.filter((r) => r.id !== requestId));
+                                }
+                            } catch (err) {
+                                console.error('Failed to accept request:', err);
                             }
                         }}
-                        onDecline={(id) => setPendingRequests((prev) => prev.filter((r) => r.id !== id))}
+                        onDecline={async (requestId) => {
+                            try {
+                                await fetch('http://localhost:5000/api/friends/decline', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ requestId })
+                                });
+                                setPendingRequests((prev) => prev.filter((r) => r.id !== requestId));
+                            } catch (err) {
+                                console.error('Failed to decline request:', err);
+                            }
+                        }}
                         onBack={() => setShowRequests(false)}
                     />
                 </main>
@@ -334,9 +408,25 @@ export default function ProfilePage() {
                 <main className="profile-fullscreen-friendlist-container">
                     <EditProfile
                         profile={profile}
-                        onSave={(updated) => {
-                            setProfile((prev) => ({ ...prev, ...updated }));
-                            setShowEditProfile(false);
+                        onSave={async (updated) => {
+                            try {
+                                const res = await fetch(`http://localhost:5000/api/auth/profile/${encodeURIComponent(profile.username)}`, {
+                                    method: 'PUT',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify(updated)
+                                });
+
+                                if (res.ok) {
+                                    setProfile((prev) => ({ ...prev, ...updated }));
+                                    setShowEditProfile(false);
+                                } else {
+                                    const data = await res.json();
+                                    alert(data.message || 'Failed to update profile.');
+                                }
+                            } catch (err) {
+                                console.error('Error updating profile:', err);
+                                alert('Network error while saving profile.');
+                            }
                         }}
                         onCancel={() => setShowEditProfile(false)}
                         onDelete={handleDeleteAccount}

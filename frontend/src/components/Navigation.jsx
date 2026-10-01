@@ -5,11 +5,21 @@ export default function Navigation({ home = false, search = false, profile = fal
   const navigate = useNavigate();
   const loggedInUser = JSON.parse(localStorage.getItem('user'));
   const isLoggedIn = loggedInUser ? true : false;
-  const isUserAdmin =  loggedInUser && loggedInUser.role ? loggedInUser.role === "admin" : false;
+  const isUserAdmin = loggedInUser && loggedInUser.role ? loggedInUser.role === "admin" : false;
 
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    navigate('/login');
+  const handleLogout = async () => {
+    try {
+      await fetch('http://localhost:5000/api/auth/logout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+    } catch (err) {
+      console.error('Network error during backend logout:', err);
+    } finally {      
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');      
+      navigate('/');
+    }
   };
 
   return (
@@ -25,7 +35,7 @@ export default function Navigation({ home = false, search = false, profile = fal
 
       {isLoggedIn ? (
         <nav className="nav-logged-in-icons">
-          {isUserAdmin && 
+          {isUserAdmin &&
             <Link to="/admin" className={`${admin ? `nav-icon-link-current` : 'nav-icon-link'}`} title="Admin">
               <FiClipboard className="nav-icon-symbol" />
             </Link>}

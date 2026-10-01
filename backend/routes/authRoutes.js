@@ -142,28 +142,43 @@ router.get('/profile/:username', async (req, res) => {
 });
 
 // PUT /api/auth/profile/:id
-router.put('/profile/:id', async (req, res) => {
+// PUT /api/auth/profile/:username
+router.put('/profile/:username', async (req, res) => {
+  const { username } = req.params;
+  const { name, pronouns, links, bio, avatarUrl } = req.body;
+
   try {
     const db = getDB();
-    const { name, pronouns, links, bio, avatarUrl } = req.body;
-    console.log(avatarUrl);
-    await db.collection('users').updateOne(
-      { _id: new ObjectId(req.params.id) },
-      {
-        $set: {
-          name,
-          pronouns,
-          links,
-          bio,
-          avatarUrl,
-          updatedAt: new Date()
-        }
-      }
+
+    const updateFields = {
+      updatedAt: new Date()
+    };
+
+    if (name !== undefined) updateFields.name = String(name).trim();
+    if (pronouns !== undefined) updateFields.pronouns = String(pronouns).trim();
+    if (links !== undefined) updateFields.links = String(links).trim();
+    if (bio !== undefined) updateFields.bio = String(bio).trim();
+    if (avatarUrl !== undefined) updateFields.avatarUrl = String(avatarUrl).trim();
+
+    const result = await db.collection('users').updateOne(
+      { username: username.toLowerCase().trim() },
+      { $set: updateFields }
     );
 
-    res.status(200).json({ message: 'Profile updated successfully.' });
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    return res.status(200).json({
+      message: 'Profile updated successfully.',
+      profile: updateFields
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Error updating profile', error: error.message });
+    console.error('Error updating user profile:', error);
+    if (error.errInfo?.details?.schemaRulesNotSatisfied) {
+      console.dir(error.errInfo.details.schemaRulesNotSatisfied, { depth: null });
+    }
+    return res.status(500).json({ message: 'Error updating profile', error: error.message });
   }
 });
 
@@ -182,7 +197,7 @@ router.delete('/profile/:id', async (req, res) => {
       return res.status(404).json({ message: 'User not found.' });
     }
 
-    const userId = user._id;    
+    const userId = user._id;
     const userPosts = await db.collection('posts')
       .find({ userId })
       .project({ _id: 1 })
@@ -195,22 +210,22 @@ router.delete('/profile/:id', async (req, res) => {
       await db.collection('reports').deleteMany({ postId: { $in: userPostIds } });
       await db.collection('albumPosts').deleteMany({ postId: { $in: userPostIds } });
     }
-    
+
     await db.collection('comments').deleteMany({ userId });
     await db.collection('likes').deleteMany({ userId });
-    
+
     await db.collection('posts').deleteMany({ userId });
     await db.collection('albums').deleteMany({ userId });
-    
+
     await db.collection('friends').deleteMany({
       $or: [{ userId1: userId }, { userId2: userId }]
     });
-    
+
     await db.collection('activities').deleteMany({
       $or: [{ actorId: userId }, { postId: { $in: userPostIds } }]
     });
-    
-    await db.collection('reports').deleteMany({ reporterId: userId });    
+
+    await db.collection('reports').deleteMany({ reporterId: userId });
     await db.collection('users').deleteOne({ _id: userId });
 
     return res.status(200).json({ message: 'Account and associated data deleted successfully.' });
@@ -220,4 +235,19 @@ router.delete('/profile/:id', async (req, res) => {
   }
 });
 
+router.post('/logout', (req, res) => {
+  try {
+    // If you are using HTTP-only cookies for session/token management, clear them here:
+    res.clearCookie('token', {
+      httpOnly: true,
+      sameSite: 'strict',
+      secure: process.env.NODE_ENV === 'production'
+    });
+
+    return res.status(200).json({ message: 'Successfully logged out.' });
+  } catch (error) {
+    console.error('Error during logout:', error);
+    return res.status(500).json({ message: 'Failed to log out.', error: error.message });
+  }
+})
 export default router;

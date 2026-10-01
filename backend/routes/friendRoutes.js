@@ -200,16 +200,6 @@ router.post('/accept', async (req, res) => {
       { _id: request._id },
       { $set: { status: 'accepted', updatedAt: now } }
     );
-    
-    await db.collection('activities').insertOne({
-      actorId: request.userId2,
-      actionType: 'became_friends',
-      friendId: request.userId1,
-      postId: null,
-      albumId: null,
-      photoCount: null,
-      createdAt: now
-    });
 
     return res.status(200).json({ message: 'Friend request accepted.' });
   } catch (error) {

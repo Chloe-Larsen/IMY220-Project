@@ -4,6 +4,27 @@ import { getDB } from '../connection.js';
 
 const router = Router();
 
+function formatTimeAgo(date) {
+  if (!date) return 'just now';
+
+  const diffMs = Math.max(0, Date.now() - new Date(date).getTime());
+  const diffMins = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const diffWeeks = Math.floor(diffMs / (1000 * 60 * 60 * 24 * 7));
+
+  if (diffHours < 1) {
+    return `${Math.max(1, diffMins)}m`;
+  } else if (diffHours < 24) {
+    return `${diffHours}h`;
+  } else if (diffDays < 7) {
+    return `${diffDays}d`;
+  } else {
+    return `${diffWeeks} weeks`;
+
+  }
+}
+
 // GET /api/posts
 router.get('/', async (req, res) => {
   const { q, feed = 'global', user: username } = req.query;
@@ -107,7 +128,12 @@ router.get('/', async (req, res) => {
       }
     ]).toArray();
 
-    res.status(200).json(posts);
+    const formattedPosts = posts.map((post) => ({
+      ...post,
+      timeAgo: formatTimeAgo(post.createdAt)
+    }));
+
+    res.status(200).json(formattedPosts);
   } catch (error) {
     res.status(500).json({ message: 'Error retrieving posts', error: error.message });
   }
@@ -183,7 +209,10 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ message: 'Post not found.' });
     }
 
-    res.status(200).json(postList[0]);
+    const post = postList[0];
+    post.timeAgo = formatTimeAgo(post.createdAt);
+
+    res.status(200).json(post);
   } catch (error) {
     res.status(500).json({ message: 'Error loading post', error: error.message });
   }

@@ -4,14 +4,27 @@ import { getDB } from '../connection.js';
 
 const router = Router();
 
-// GET /api/activity
+function formatTimeAgo(date) {
+  if (!date) return 'just now';
+  const diffMs = Math.max(0, Date.now() - new Date(date).getTime());
+  const diffMins = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffHours < 1) return `${Math.max(1, diffMins)}m`;
+  if (diffHours < 24) return `${diffHours}h`;
+  return `${diffDays}d`;
+}
+
+// GET /api/activities?feed=local&user=username
 router.get('/', async (req, res) => {
-  const { scope = 'global', user: username } = req.query;
+  const { feed = 'global', user: username } = req.query;
 
   try {
     const db = getDB();
     let filter = {};
-    if (scope === 'local') {
+    
+    if (feed === 'local') {
       if (!username) {
         return res.status(200).json([]);
       }
@@ -23,33 +36,26 @@ router.get('/', async (req, res) => {
       if (!currentUser) {
         return res.status(200).json([]);
       }
-
-      const currentUserId = currentUser._id;
-      const currentUserIdStr = currentUserId.toString();
       
       const friendships = await db.collection('friends').find({
-        status: 'accepted',
         $or: [
-          { userId1: currentUserId },
-          { userId2: currentUserId },
-          { userId1: currentUserIdStr },
-          { userId2: currentUserIdStr }
-        ]
+          { userId1: currentUser._id },
+          { userId2: currentUser._id }
+        ],
+        status: 'accepted'
       }).toArray();
       
-      const friendIds = friendships.map((f) => {
-        const other = (f.userId1?.toString() === currentUserIdStr) ? f.userId2 : f.userId1;
-        return ObjectId.isValid(other) ? new ObjectId(other) : other;
-      });      
-      filter = {
-        actorId: { $in: [currentUserId, ...friendIds] }
-      };
+      const friendIds = friendships.map((f) =>
+        f.userId1.toString() === currentUser._id.toString() ? f.userId2 : f.userId1
+      );
+      
+      const allowedActorIds = [currentUser._id, ...friendIds];
+      filter.actorId = { $in: allowedActorIds };
     }
-    
-    const activityFeed = await db.collection('activities').aggregate([
+
+    const activities = await db.collection('activities').aggregate([
       { $match: filter },
-      { $sort: { createdAt: -1 } },
-      { $limit: 50 },      
+      { $sort: { createdAt: -1 } }, { $limit: 40 },      
       {
         $lookup: {
           from: 'users',
@@ -58,12 +64,7 @@ router.get('/', async (req, res) => {
           as: 'actor'
         }
       },
-      {
-        $unwind: {
-          path: '$actor',
-          preserveNullAndEmptyArrays: true
-        }
-      },      
+      { $unwind: '$actor' },      
       {
         $lookup: {
           from: 'posts',
@@ -71,7 +72,8 @@ router.get('/', async (req, res) => {
           foreignField: '_id',
           as: 'postDoc'
         }
-      },      
+      },
+      { $unwind: { path: '$postDoc', preserveNullAndEmptyArrays: true } },      
       {
         $lookup: {
           from: 'albums',
@@ -80,29 +82,55 @@ router.get('/', async (req, res) => {
           as: 'albumDoc'
         }
       },
-      
+      { $unwind: { path: '$albumDoc', preserveNullAndEmptyArrays: true } },      
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'friendId',
+          foreignField: '_id',
+          as: 'friendDoc'
+        }
+      },
+      { $unwind: { path: '$friendDoc', preserveNullAndEmptyArrays: true } },
       {
         $project: {
           id: '$_id',
           actionType: 1,
           createdAt: 1,
-          photoCount: 1,
-          username: { $ifNull: ['$actor.username', 'Unknown'] },
-          actorName: { $ifNull: ['$actor.name', ''] },
-          targetId: '$postId',
-          albumId: '$albumId',
-          albumName: { $arrayElemAt: ['$albumDoc.name', 0] },
-          caption: { $arrayElemAt: ['$postDoc.caption', 0] },
-          imageUrl: { $arrayElemAt: ['$postDoc.imageUrl', 0] },
-          hashtags: { $ifNull: [{ $arrayElemAt: ['$postDoc.hashtags', 0] }, []] }
+          actor: {
+            id: '$actor._id',
+            username: '$actor.username',
+            name: '$actor.name',
+            avatarUrl: '$actor.avatarUrl'
+          },
+          post: {
+            id: '$postDoc._id',
+            caption: '$postDoc.caption',
+            imageUrl: '$postDoc.imageUrl'
+          },
+          album: {
+            id: '$albumDoc._id',
+            name: '$albumDoc.name'
+          },
+          targetFriend: {
+            id: '$friendDoc._id',
+            username: '$friendDoc.username',
+            name: '$friendDoc.name'
+          }
         }
       }
     ]).toArray();
 
-    return res.status(200).json(activityFeed);
+    const formatted = activities.map((act) => ({
+      ...act,
+      timeAgo: formatTimeAgo(act.createdAt)
+    }));
+
+    return res.status(200).json(formatted);
   } catch (error) {
-    console.error('Error fetching activity feed:', error);
+    console.error('Error fetching activities:', error);
     return res.status(500).json({ message: 'Error retrieving activities', error: error.message });
   }
 });
+
 export default router;
