@@ -70,9 +70,34 @@ export default function PostPage() {
   const isOwner =
     post && loggedInUser.username.toLowerCase() === post.username.toLowerCase();
 
-  const handleToggleLike = () => {
-    setIsLiked((prev) => !prev);
-    setLikesCount((prev) => (isLiked ? prev - 1 : prev + 1));
+  const handleToggleLike = async () => {
+    const nextLikedState = !isLiked;
+    setIsLiked(nextLikedState);
+    setLikesCount((prev) => (nextLikedState ? prev + 1 : prev - 1));
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/posts/${id}/like`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: loggedInUser.username })
+      });
+
+      if (!res.ok) {
+        setIsLiked(!nextLikedState);
+        setLikesCount((prev) => (nextLikedState ? prev - 1 : prev + 1));
+      }
+
+      const data = await res.json();
+      if (typeof data.liked === 'boolean') {
+        setIsLiked(data.liked);
+      }
+      if (typeof data.likesCount === 'number') {
+        setLikesCount(data.likesCount);
+      }
+    } catch {
+      setIsLiked(!nextLikedState);
+      setLikesCount((prev) => (nextLikedState ? prev - 1 : prev + 1));
+    }
   };
 
   const handleReportPost = () => {
@@ -82,7 +107,7 @@ export default function PostPage() {
 
   const handleSavePost = async (updatedData) => {
     try {
-      await fetch(`http://localhost:5000http://localhost:5000http://localhost:5000/api/posts/${id}`, {
+      await fetch(`http://localhost:5000/api/posts/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedData)
@@ -211,7 +236,7 @@ export default function PostPage() {
   if (loading) {
     return (
       <div className="app-container postpage-desktop-screen">
-        <Navigation isLoggedIn={true} />
+        <Navigation  />
         <main className="postpage-desktop-split-layout">
           <div className="postpage-desktop-left-col">
             <div className="postpage-skeleton-box skeleton-shimmer" />
@@ -222,7 +247,7 @@ export default function PostPage() {
             <div className="postpage-skeleton-line postpage-skeleton-body skeleton-shimmer" />
           </div>
         </main>
-        <Footer isLoggedIn={true} />
+        <Footer  />
       </div>
     );
   }
@@ -230,7 +255,7 @@ export default function PostPage() {
   if (!post) {
     return (
       <div className="app-container postpage-desktop-screen">
-        <Navigation isLoggedIn={true} />
+        <Navigation  />
         <main className="postpage-desktop-split-layout postpage-empty-layout">
           <div className="search-empty-state">
             <p className="empty-title">Post not found</p>
@@ -243,14 +268,14 @@ export default function PostPage() {
             </button>
           </div>
         </main>
-        <Footer isLoggedIn={true} />
+        <Footer  />
       </div>
     );
   }
 
   return (
     <div className="app-container postpage-desktop-screen">
-      <Navigation isLoggedIn={true} />
+      <Navigation  />
 
       <main className="postpage-desktop-split-layout">
         <div className="postpage-desktop-left-col">
@@ -390,8 +415,8 @@ export default function PostPage() {
           }}
         />
       )}
-      
-      <Footer isLoggedIn={true} />
+
+      <Footer  />
     </div>
   );
 }

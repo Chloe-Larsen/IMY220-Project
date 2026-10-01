@@ -16,10 +16,10 @@ export default function HomePage() {
   useEffect(() => {
     setLoading(true);
     setError('');
-
+        
     const startTime = Date.now();
-
-    fetch(`http://localhost:5000/api/posts?feed=${activeFeed}`)
+    const loggedInUser = JSON.parse(localStorage.getItem('user'));
+    fetch(`http://localhost:5000/api/posts?feed=${activeFeed}&user=${encodeURIComponent(loggedInUser.username)}`)
       .then((res) => {
         if (!res.ok) throw new Error(`Server error: ${res.status}`);
         return res.json();
@@ -72,7 +72,7 @@ export default function HomePage() {
 
   return (
     <div className="app-container home-desktop-screen">
-      <Navigation isLoggedIn={true} home={true} />
+      <Navigation  home={true} />
 
       <div className="home-subbar">
         <div className="home-feed-toggle-group">
@@ -128,10 +128,10 @@ export default function HomePage() {
           </p>
         )}
 
-        {!loading && !error && <PostList userPosts={posts}/>}
+        {!loading && !error && <PostList userPosts={posts} />}
       </main>
 
-      <Footer isLoggedIn={true} />
+      <Footer  />
     </div>
   );
 }

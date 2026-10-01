@@ -84,7 +84,7 @@ export default function SearchPage() {
 
   return (
     <div className="app-container search-desktop-screen">
-      <Navigation isLoggedIn={true} search={true} />
+      <Navigation  search={true} />
 
       <main className="search-main-container">
         <section className="search-bar-section">
@@ -159,7 +159,7 @@ export default function SearchPage() {
         </section>
       </main>
 
-      <Footer isLoggedIn={true} />
+      <Footer/>
     </div>
   );
 }

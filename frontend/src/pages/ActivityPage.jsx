@@ -20,7 +20,7 @@ export default function ActivityPage() {
     setError('');
     const startTime = Date.now();
     
-    fetch(`http://localhost:5000/api/activity?scope=${feedScope}&user=${encodeURIComponent(loggedInUser.username)}`)
+    fetch(`http://localhost:5000/api/activity?scope=${feedScope}`)
       .then((res) => {
         if (!res.ok) throw new Error(`Status: ${res.status}`);
         return res.json();
@@ -36,53 +36,6 @@ export default function ActivityPage() {
         }, remainingTime);
       })
       .catch(() => {
-        const elapsedTime = Date.now() - startTime;
-        const remainingTime = Math.max(0, 1000 - elapsedTime);
-
-        setTimeout(() => {          
-          const mockActivities = [
-            {
-              id: 'act-1',
-              actionType: 'created_post',
-              username: 'falconer_dan',
-              targetId: '101',
-              caption: 'Spotted a rare Cape Sugarbird enjoying the afternoon proteas.',
-              hashtags: '#Sugarbird #Protea #Fynbos',
-              imageUrl: 'https://images.unsplash.com/photo-1552728089-57bdde30beb3?w=600',
-              timeAgo: '15m ago'
-            },
-            {
-              id: 'act-2',
-              actionType: 'added_to_album',
-              username: 'pelican_pete',
-              albumName: 'Wetland Explorations',
-              photoCount: 2,
-              caption: 'Added new closeups from the coastal sanctuary reserve.',
-              hashtags: '#Wetlands #Pelicans',
-              images: [
-                'https://images.unsplash.com/photo-1444464666168-49d633b86797?w=300',
-                'https://images.unsplash.com/photo-1555169062-013468b47731?w=300'
-              ],
-              timeAgo: '1h ago'
-            },
-            {
-              id: 'act-3',
-              actionType: 'created_album',
-              username: 'crow_watcher',
-              albumName: 'Highveld Raptors',
-              photoCount: 1,
-              caption: 'Starting an album documenting hunting grounds of regional raptors.',
-              hashtags: '#Raptors #Highveld',
-              images: [
-                'https://images.unsplash.com/photo-1618336753974-aae8e04506aa?w=300'
-              ],
-              timeAgo: '3h ago'
-            }
-          ];
-
-          setActivities(mockActivities);
-          setLoading(false);
-        }, remainingTime);
       });
   }, [feedScope, loggedInUser.username]);
 
@@ -96,7 +49,7 @@ export default function ActivityPage() {
 
   return (
     <div className="app-container home-desktop-screen">
-      <Navigation isLoggedIn={true} isActivity={true} />
+      <Navigation isActivity={true} />
 
       <main className="activity-page-main">        
         <div className="home-subbar">
@@ -170,7 +123,7 @@ export default function ActivityPage() {
         </section>
       </main>
 
-      <Footer isLoggedIn={true} />
+      <Footer  />
     </div>
   );
 }

@@ -1,25 +1,46 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FiHeart, FiClock } from 'react-icons/fi';
 import Image from './Image';
 
 export default function PostPreview({ post }) {
     const navigate = useNavigate();
-    const [isLiked, setIsLiked] = useState(post.isLiked || false);
+    const loggedInUser = JSON.parse(localStorage.getItem('user'))
+    const [isLiked, setIsLiked] = useState(Boolean(post.isLiked));
     const [likesCount, setLikesCount] = useState(post.likes ?? 0);
 
-    const handleLikeClick = async () => {
-        const newLikedState = !isLiked;
-        setIsLiked(newLikedState);
-        setLikesCount((prev) => (newLikedState ? prev + 1 : prev - 1));
+    useEffect(() => {
+        setIsLiked(Boolean(post.isLiked));
+        setLikesCount(post.likes ?? 0);
+    }, [post.id, post.likes, post.isLiked]);
+
+    const handleLikeClick = async (e) => {
+        e.preventDefault();
+        e.stopPropagation();        
+        const nextLikedState = !isLiked;
+        setIsLiked(nextLikedState);
+        setLikesCount((prev) => (nextLikedState ? prev + 1 : Math.max(0, prev - 1)));
 
         try {
-            await fetch(`http://localhost:5000/api/posts/${post.id}/like`, {
+            const res = await fetch(`http://localhost:5000/api/posts/${post.id}/like`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ liked: newLikedState })
+                body: JSON.stringify({ username: loggedInUser.username })
             });
-        } catch {
+
+            if (!res.ok) {
+                throw new Error('Failed to update like status');
+            }            
+            const data = await res.json();
+            if (typeof data.liked === 'boolean') {
+                setIsLiked(data.liked);
+            }
+            if (typeof data.likesCount === 'number') {
+                setLikesCount(data.likesCount);
+            }
+        } catch {            
+            setIsLiked(!nextLikedState);
+            setLikesCount((prev) => (nextLikedState ? Math.max(0, prev - 1) : prev + 1));
         }
     };
 

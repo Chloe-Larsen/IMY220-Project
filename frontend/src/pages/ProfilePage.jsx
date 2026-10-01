@@ -43,10 +43,7 @@ export default function ProfilePage() {
     const [selectedAlbum, setSelectedAlbum] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    const [pendingRequests, setPendingRequests] = useState([
-        { id: '5', username: 'falconer_dan', name: 'Dan Jacobs' },
-        { id: '6', username: 'pelican_pete', name: 'Peter Van Wyk' }
-    ]);
+    const [pendingRequests, setPendingRequests] = useState([]);
 
     const [showFriendsList, setShowFriendsList] = useState(false);
     const [showRequests, setShowRequests] = useState(false);
@@ -66,7 +63,7 @@ export default function ProfilePage() {
         setSelectedAlbum(null);
         setLoading(true);
 
-        const startTime = Date.now();        
+        const startTime = Date.now();
         const fetchProfile = fetch(`http://localhost:5000/api/auth/profile/${encodeURIComponent(targetUsername)}`)
             .then((res) => (res.ok ? res.json() : null))
             .then((data) => {
@@ -135,10 +132,7 @@ export default function ProfilePage() {
             username: loggedInUser.username,
             caption: newPostData.caption,
             hashtags: newPostData.hashtags,
-            imageUrl: newPostData.imageUrl,
-            likes: 0,
-            timeAgo: 'Just now',
-            comments: []
+            imageUrl: newPostData.imageUrl
         };
 
         try {
@@ -155,25 +149,28 @@ export default function ProfilePage() {
     };
 
     const handlePublishAlbum = async (newAlbumData) => {
-        const createdAlbum = {
-            id: String(Date.now()),
-            username: loggedInUser.username,
-            name: newAlbumData.name,
-            description: newAlbumData.description,
-            hashtags: newAlbumData.hashtags,
-            posts: []
-        };
-
         try {
-            await fetch('http://localhost:5000/api/albums', {
+            const res = await fetch('http://localhost:5000/api/albums', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(createdAlbum)
+                body: JSON.stringify({
+                    username: loggedInUser.username,
+                    name: newAlbumData.name,
+                    description: newAlbumData.description,
+                    hashtags: newAlbumData.hashtags
+                })
             });
-        } catch {
-        }
 
-        setUserAlbums((prev) => [createdAlbum, ...prev]);
+            if (res.ok) {                
+                const albumsRes = await fetch(`http://localhost:5000/api/albums?user=${encodeURIComponent(targetUsername)}`);
+                if (albumsRes.ok) {
+                    const refreshedAlbums = await albumsRes.json();
+                    setUserAlbums(refreshedAlbums);
+                }
+            }
+        } catch (err) {
+            console.error('Error publishing album:', err);
+        }
         setShowNewAlbum(false);
     };
 
@@ -263,9 +260,53 @@ export default function ProfilePage() {
         }
     };
 
+    const handleDeleteAccount = async () => {
+        const confirmDelete = window.confirm(
+            'Are you sure you want to delete your account? All your posts, comments, and friends will be permanently removed.'
+        );
+        if (!confirmDelete) return;
+
+        const storedUser = JSON.parse(localStorage.getItem('user'));
+        if (!storedUser?.username) return;
+
+        try {
+            const res = await fetch(`http://localhost:5000/api/auth/profile/${storedUser.username}`, {
+                method: 'DELETE'
+            });
+
+            if (res.ok) {
+                localStorage.removeItem('user');
+                localStorage.removeItem('token');
+                navigate('/');
+            } else {
+                const data = await res.json();
+                alert(data.message || 'Failed to delete account.');
+            }
+        } catch (err) {
+            console.error('Error during profile deletion:', err);
+        }
+    };
+
+    const handleOpenAlbum = async (alb) => {
+        setSelectedAlbum(alb);
+        try {
+            const res = await fetch(`http://localhost:5000/api/albums/${alb.id}`);
+            if (res.ok) {
+                const freshData = await res.json();
+                setSelectedAlbum(freshData);
+                // Also keep userAlbums in sync
+                setUserAlbums((prev) =>
+                    prev.map((a) => (a.id === freshData.id ? freshData : a))
+                );
+            }
+        } catch (err) {
+            console.error('Error fetching full album details:', err);
+        }
+    };
+
     return (
         <div className="app-container profile-desktop-screen">
-            <Navigation isLoggedIn={true} profile={true} isProfile={isOwnProfile} />
+            <Navigation profile={true} isProfile={isOwnProfile} />
 
             {showFriendsList ? (
                 <main className="profile-fullscreen-friendlist-container">
@@ -298,10 +339,7 @@ export default function ProfilePage() {
                             setShowEditProfile(false);
                         }}
                         onCancel={() => setShowEditProfile(false)}
-                        onDelete={() => {
-                            localStorage.removeItem('user');
-                            navigate('/signup');
-                        }}
+                        onDelete={handleDeleteAccount}
                     />
                 </main>
             ) : showNewPost ? (
@@ -500,7 +538,7 @@ export default function ProfilePage() {
                                         <AlbumCard
                                             key={album.id}
                                             album={album}
-                                            onSelectAlbum={(alb) => setSelectedAlbum(alb)}
+                                            onSelectAlbum={handleOpenAlbum}
                                         />
                                     ))
                                 )
@@ -510,7 +548,7 @@ export default function ProfilePage() {
                 </main>
             )}
 
-            <Footer isLoggedIn={true} />
+            <Footer />
         </div>
     );
 }

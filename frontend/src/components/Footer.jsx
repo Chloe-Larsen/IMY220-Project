@@ -2,10 +2,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import logoImg from '../assets/logo.jpeg';
 import Image from './Image';
 
-export default function Footer({ isLoggedIn = true }) {
+export default function Footer() {
     const navigate = useNavigate();
-
-    const loggedInUser = JSON.parse(localStorage.getItem('user')) || { username: 'avian_chloe' };
+    const loggedInUser = JSON.parse(localStorage.getItem('user'));
+    const isLoggedIn = loggedInUser ? true : false;
+    const isUserAdmin = loggedInUser && loggedInUser.role ? loggedInUser.role === "admin" : false;
 
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -16,10 +17,10 @@ export default function Footer({ isLoggedIn = true }) {
     return (
         <footer className="wireframe-footer">
             <div className="footer-brand-container">
-                <Image 
-                imageValue={logoImg} 
-                altText="TipTap Logo" 
-                className="footer-logo-img" />
+                <Image
+                    imageValue={logoImg}
+                    altText="TipTap Logo"
+                    className="footer-logo-img" />
                 <span className="brand-logo footer-brand-text">TipTap</span>
             </div>
 
@@ -31,6 +32,7 @@ export default function Footer({ isLoggedIn = true }) {
                     <Link to="/search" className="footer-link">Search</Link>
                     <Link to={`/profile/${loggedInUser.username}`} className="footer-link">Profile</Link>
                     <Link to="/activity" className="footer-link">Activity</Link>
+                    {isUserAdmin && <Link to="/admin" className="footer-link">Admin</Link>}
                     <button onClick={handleLogout} className="footer-logout-btn">
                         Log Out
                     </button>

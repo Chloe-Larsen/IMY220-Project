@@ -141,15 +141,13 @@ export default function AdminPage() {
         setReports((prev) => prev.filter((r) => r.id !== reportId));
         showStatus(`Post #${postId} deleted and report resolved.`);
     };
-
-    // Suspend/delete a user account
+    
     const handleSuspendUser = async (userId, username) => {
         if (!window.confirm(`Are you sure you want to suspend @${username}?`)) return;
 
         try {
             await fetch(`/api/admin/users/${userId}`, { method: 'DELETE' });
-        } catch {
-            // Local fallback
+        } catch {            
         }
 
         setUsers((prev) => prev.filter((u) => u.id !== userId));
@@ -158,7 +156,7 @@ export default function AdminPage() {
 
     return (
         <div className="app-container profile-desktop-screen">
-            <Navigation isLoggedIn={true} />
+            <Navigation admin={true}/>
 
             <main className="profile-wireframe-layout admin-console-layout">
                 <div className="profile-status-bar-row">
@@ -349,7 +347,7 @@ export default function AdminPage() {
                 )}
             </main>
 
-            <Footer isLoggedIn={true} />
+            <Footer  />
         </div>
     );
 }

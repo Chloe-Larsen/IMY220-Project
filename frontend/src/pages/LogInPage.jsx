@@ -28,6 +28,12 @@ export default function LoginPage() {
             });
             const data = await res.json();
             if (res.ok) {
+                if (data.user) {
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                }
+                if (data.token) {
+                    localStorage.setItem('token', data.token);
+                }
                 navigate('/home');
             } else {
                 setError(data.message || 'Login failed.');
@@ -88,7 +94,7 @@ export default function LoginPage() {
                         </div>
 
                         <div className="login-actions-row">
-                            <button type="submit" className="wireframe-btn login-action-btn" style={{marginBottom: '20px'}}>
+                            <button type="submit" className="wireframe-btn login-action-btn" style={{ marginBottom: '20px' }}>
                                 Log In
                             </button>
                         </div>

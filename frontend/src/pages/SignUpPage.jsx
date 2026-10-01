@@ -50,7 +50,13 @@ export default function SignUpPage() {
         body: JSON.stringify(formData)
       });
       const data = await res.json();
-      if (res.ok) {        
+      if (res.ok) {
+        if (data.user) {
+          localStorage.setItem('user', JSON.stringify(data.user));
+        }
+        if (data.token) {
+          localStorage.setItem('token', data.token);
+        }
         navigate('/home');
       } else {
         setError(data.message || 'Sign up failed.');
@@ -62,7 +68,7 @@ export default function SignUpPage() {
 
   return (
     <div className="app-container signup-wireframe-screen">
-      <Navigation isLoggedIn={false} />    
+      <Navigation isLoggedIn={false} />
 
       <div className="signup-bottom-action-row">
         <button
@@ -211,12 +217,12 @@ export default function SignUpPage() {
         </div>
 
         <div className="signup-bottom-action-row">
-          <button type="submit" className="signup-green-btn" style={{marginTop: '20px'}}>
+          <button type="submit" className="signup-green-btn" style={{ marginTop: '20px' }}>
             Sign Up
           </button>
         </div>
       </form>
-      <Footer isLoggedIn={false}/>
+      <Footer isLoggedIn={false} />
     </div>
   );
 }
