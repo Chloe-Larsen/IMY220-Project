@@ -17,15 +17,15 @@ router.get('/', async (req, res) => {
         username: username.toLowerCase().trim()
       });
 
-      if (currentUser) {        
+      if (currentUser) {
         const friendships = await db.collection('friends').find({
           $or: [{ userId1: currentUser._id }, { userId2: currentUser._id }],
           status: 'accepted'
         }).toArray();
-        
+
         const friendIds = friendships.map((f) =>
           f.userId1.toString() === currentUser._id.toString() ? f.userId2 : f.userId1
-        );        
+        );
         const allowedAuthorIds = [currentUser._id, ...friendIds];
         filter.userId = { $in: allowedAuthorIds };
       } else {
@@ -371,6 +371,66 @@ router.post('/:id/report', async (req, res) => {
     res.status(200).json({ message: 'Report received' });
   } catch (error) {
     res.status(500).json({ message: 'Error filing report', error: error.message });
+  }
+});
+
+// PUT /api/posts/:id/comments/:commentId
+router.put('/:id/comments/:commentId', async (req, res) => {
+  const { commentId } = req.params;
+  const { text } = req.body;
+
+  if (!ObjectId.isValid(commentId)) {
+    return res.status(400).json({ message: 'Invalid Comment ID.' });
+  }
+
+  if (!text || !text.trim()) {
+    return res.status(400).json({ message: 'Comment text cannot be empty.' });
+  }
+
+  try {
+    const db = getDB();
+    const result = await db.collection('comments').updateOne(
+      { _id: new ObjectId(commentId) },
+      {
+        $set: {
+          text: text.trim(),
+          updatedAt: new Date()
+        }
+      }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ message: 'Comment not found.' });
+    }
+
+    return res.status(200).json({ message: 'Comment updated successfully.' });
+  } catch (error) {
+    console.error('Error updating comment:', error);
+    return res.status(500).json({ message: 'Error updating comment', error: error.message });
+  }
+});
+
+router.delete('/:id/comments/:commentId', async (req, res) => {
+  const { commentId } = req.params;
+
+  if (!ObjectId.isValid(commentId)) {
+    return res.status(400).json({ message: 'Invalid Comment ID.' });
+  }
+
+  try {
+    const db = getDB();
+    const result = await db.collection('comments').deleteOne({
+      _id: new ObjectId(commentId)
+    });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: 'Comment not found.' });
+    }
+
+    return res.status(200).json({ message: 'Comment deleted successfully.' });
+  } catch (error) {
+    console.error('Error deleting comment:', error);
+    return res.status(500).json({ message: 'Error deleting comment', error: error.message });
   }
 });
 

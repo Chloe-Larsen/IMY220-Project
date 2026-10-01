@@ -146,7 +146,7 @@ router.put('/profile/:id', async (req, res) => {
   try {
     const db = getDB();
     const { name, pronouns, links, bio, avatarUrl } = req.body;
-
+    console.log(avatarUrl);
     await db.collection('users').updateOne(
       { _id: new ObjectId(req.params.id) },
       {
