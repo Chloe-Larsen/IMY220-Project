@@ -115,7 +115,7 @@ export default function ProfilePage() {
                 setUserPosts(Array.isArray(posts) ? posts : []);
             });
 
-        const fetchAlbums = fetch(`http://localhost:5000/api/albums?user=${encodeURIComponent(targetUsername)}`)
+        const fetchAlbums = fetch(`http://localhost:5000/api/albums?user=${encodeURIComponent(targetUsername)}&viewer=${encodeURIComponent(loggedInUser.username)}`)
             .then((res) => (res.ok ? res.json() : []))
             .then((albums) => {
                 setUserAlbums(Array.isArray(albums) ? albums : []);
@@ -362,7 +362,7 @@ export default function ProfilePage() {
     const handleOpenAlbum = async (alb) => {
         setSelectedAlbum(alb);
         try {
-            const res = await fetch(`http://localhost:5000/api/albums/${alb.id}`);
+            const res = await fetch(`http://localhost:5000/api/albums/${alb.id}?viewer=${encodeURIComponent(loggedInUser.username)}`);
             if (res.ok) {
                 const freshData = await res.json();
                 setSelectedAlbum(freshData);
