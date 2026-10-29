@@ -8,6 +8,8 @@ services:
       - "5000:5000"
     environment:
       - PORT=5000
+    dns:
+      - 137.215.4.242
     networks:
       - tiptap-network
     restart: unless-stopped

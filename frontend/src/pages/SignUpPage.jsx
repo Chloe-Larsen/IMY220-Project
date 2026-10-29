@@ -182,8 +182,7 @@ export default function SignUpPage() {
                   placeholder="Input"
                   value={formData.pronouns}
                   onChange={handleChange}
-                />
-                <button type="button" className="link-plus-btn">+</button>
+                />                
               </div>
             </div>
 
@@ -209,8 +208,7 @@ export default function SignUpPage() {
                   placeholder="Input"
                   value={formData.links}
                   onChange={handleChange}
-                />
-                <button type="button" className="link-plus-btn">+</button>
+                />                
               </div>
             </div>
           </div>

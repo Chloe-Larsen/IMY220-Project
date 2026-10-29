@@ -254,9 +254,9 @@ body {
   border: 1px solid var(--border-muted);
 }
 
-.login-wireframe-input::placeholder {
-  color: #8b9287;
-  font-family: var(--font-main);
+.login-wireframe-input:focus {
+  outline: 2px solid var(--accent-green) !important;
+  background-color: #ffffff !important;
 }
 
 .forgot-password-text {
@@ -432,8 +432,8 @@ body {
 }
 
 .signup-pronoun-input-container input:focus {
-  outline: none;
-  background: transparent;
+  outline: 2px solid var(--accent-green);
+  background-color: #ffffff;
 }
 
 .signup-link-input-container {
@@ -454,8 +454,8 @@ body {
 }
 
 .signup-link-input-container input:focus {
-  outline: none;
-  background: transparent;
+  outline: 2px solid var(--accent-green);
+  background-color: #ffffff;
 }
 
 .link-plus-btn {

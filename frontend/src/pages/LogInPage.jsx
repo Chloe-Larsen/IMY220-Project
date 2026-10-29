@@ -89,8 +89,7 @@ export default function LoginPage() {
                                 value={formData.password}
                                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                 required
-                            />
-                            <span className="forgot-password-text">Forget Password</span>
+                            />                            
                         </div>
 
                         <div className="login-actions-row">
