@@ -11,6 +11,9 @@ export default function AlbumDetail({
     onAddPostToAlbum,
     onRemovePostFromAlbum
 }) {
+    const loggedInUser = JSON.parse(localStorage.getItem('user'));
+    const isAdmin = loggedInUser?.role === 'admin';
+    const canEdit = isOwnProfile || isAdmin;
     const [isEditing, setIsEditing] = useState(false);
     const [showAddPostModal, setShowAddPostModal] = useState(false);
     const [editData, setEditData] = useState({
@@ -91,7 +94,7 @@ export default function AlbumDetail({
                     <p className="post-description-text">{album.description}</p>
                     {album.hashtags && <span className="hashtag-btn">{album.hashtags}</span>}
 
-                    {isOwnProfile && (
+                    {canEdit && (
                         <div className="album-owner-controls">
                             <button
                                 type="button"
@@ -128,7 +131,7 @@ export default function AlbumDetail({
                         {(album.posts || []).map((post) => (
                             <div key={post.id} className="album-post-item-wrapper">
                                 <PostList userPosts={[post]} />
-                                {isOwnProfile && (
+                                {canEdit && (
                                     <button
                                         type="button"
                                         className="album-remove-post-btn"

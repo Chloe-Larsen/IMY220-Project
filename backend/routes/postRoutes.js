@@ -282,7 +282,18 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const db = getDB();
-    const { caption, hashtags } = req.body;
+    const { caption, hashtags, requester } = req.body; // <-- Add requester
+
+    const post = await db.collection('posts').findOne({ _id: new ObjectId(req.params.id) });
+    if (!post) return res.status(404).json({ message: 'Post not found' });
+
+    const user = await db.collection('users').findOne({ username: requester });
+    const isAdmin = user && user.role === 'admin';
+    const isOwner = requester === (await db.collection('users').findOne({ _id: post.userId }))?.username;
+
+    if (!isAdmin && !isOwner) {
+      return res.status(403).json({ message: 'You do not have permission to edit this post.' });
+    }
 
     await db.collection('posts').updateOne(
       { _id: new ObjectId(req.params.id) },
@@ -307,6 +318,19 @@ router.delete('/:id', async (req, res) => {
     const db = getDB();
     const postId = new ObjectId(req.params.id);
 
+    const requester = req.body.requester;
+
+    const post = await db.collection('posts').findOne({ _id: postId });
+    if (!post) return res.status(404).json({ message: 'Post not found' });
+
+    const user = await db.collection('users').findOne({ username: requester });
+    const isAdmin = user && user.role === 'admin';
+    const isOwner = requester === (await db.collection('users').findOne({ _id: post.userId }))?.username;
+
+    if (!isAdmin && !isOwner) {
+      return res.status(403).json({ message: 'You do not have permission to delete this post.' });
+    }
+
     const albumLinks = await db.collection('albumPosts').find({ postId }).toArray();
     const affectedAlbumIds = albumLinks.map(link => link.albumId);
 
@@ -320,10 +344,10 @@ router.delete('/:id', async (req, res) => {
     for (const albumId of affectedAlbumIds) {
       const remainingCount = await db.collection('albumPosts').countDocuments({ albumId });
 
-      if (remainingCount === 0) {        
+      if (remainingCount === 0) {
         const album = await db.collection('albums').findOne({ _id: albumId });
 
-        if (album) {          
+        if (album) {
           await db.collection('albums').deleteOne({ _id: albumId });
         }
       }

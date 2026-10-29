@@ -353,13 +353,24 @@ export default function AdminPage() {
                                                 </div>
 
                                                 {u.role !== 'admin' && (
-                                                    <button
-                                                        type="button"
-                                                        className="request-decline-btn admin-delete-btn"
-                                                        onClick={() => handleSuspendUser(u.id, u.username)}
-                                                    >
-                                                        <FiUserX /> Suspend
-                                                    </button>
+                                                    <div>
+                                                        <button
+                                                            type="button"
+                                                            className="wireframe-btn"
+                                                            style={{marginRight: "10px"}}
+                                                            onClick={() => window.location.href = `/profile/${u.username}`}
+                                                        >
+                                                            Edit Profile
+                                                        </button>
+
+                                                        <button
+                                                            type="button"
+                                                            className="request-decline-btn admin-delete-btn"
+                                                            onClick={() => handleSuspendUser(u.id, u.username)}
+                                                        >
+                                                            <FiUserX /> Suspend
+                                                        </button>
+                                                    </div>
                                                 )}
                                             </div>
                                         ))}

@@ -4,7 +4,7 @@ import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
 import EditPost from '../components/EditPost';
 import Comments from '../components/Comments';
-import { FiHeart, FiClock, FiMoreHorizontal, FiEdit2, FiAlertCircle, FiTrash2, FiFolder  } from 'react-icons/fi';
+import { FiHeart, FiClock, FiMoreHorizontal, FiEdit2, FiAlertCircle, FiTrash2, FiFolder } from 'react-icons/fi';
 import Image from '../components/Image';
 import ReportModal from '../components/ReportModal';
 
@@ -67,8 +67,9 @@ export default function PostPage() {
     return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, []);
 
-  const isOwner =
-    post && loggedInUser.username.toLowerCase() === post.username.toLowerCase();
+  const isOwner = post && loggedInUser.username.toLowerCase() === post.username.toLowerCase();
+  const isAdmin = loggedInUser.role === 'admin';  
+  const canEditDelete = isOwner || isAdmin;
 
   const handleToggleLike = async () => {
     const nextLikedState = !isLiked;
@@ -110,7 +111,10 @@ export default function PostPage() {
       await fetch(`http://localhost:5000/api/posts/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedData)
+        body: JSON.stringify({
+          ...updatedData,
+          requester: loggedInUser.username
+        })
       });
     } catch {
       // Local fallback
@@ -134,7 +138,9 @@ export default function PostPage() {
 
     try {
       const res = await fetch(`http://localhost:5000/api/posts/${id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requester: loggedInUser.username })
       });
 
       if (res.ok) {
@@ -273,6 +279,8 @@ export default function PostPage() {
     );
   }
 
+  
+
   return (
     <div className="app-container postpage-desktop-screen">
       <Navigation />
@@ -323,7 +331,7 @@ export default function PostPage() {
 
               {showOptionsMenu && (
                 <div className="postpage-dropdown-menu">
-                  {isOwner ? (
+                  {canEditDelete ? (
                     <>
                       <button
                         type="button"
@@ -388,7 +396,7 @@ export default function PostPage() {
 
               <div className="postpage-tags-list">{renderHashtags()}</div>
 
-              {post.albums && post.albums.length > 0 && (                
+              {post.albums && post.albums.length > 0 && (
                 <div className="postpage-albums-container">
                   <span className="postpage-albums-label">Featured in albums:</span>
                   {post.albums.map(album => (

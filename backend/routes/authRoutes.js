@@ -146,10 +146,18 @@ router.get('/profile/:username', async (req, res) => {
 // PUT /api/auth/profile/:username
 router.put('/profile/:username', async (req, res) => {
   const { username } = req.params;
-  const { name, surname, pronouns, links, bio, avatarUrl } = req.body;
+  const { name, surname, pronouns, links, bio, avatarUrl, requester } = req.body;
 
   try {
     const db = getDB();
+
+    const requesterUser = await db.collection('users').findOne({ username: requester });
+    const isAdmin = requesterUser && requesterUser.role === 'admin';
+    const isSelf = requester === username;
+
+    if (!isAdmin && !isSelf) {
+      return res.status(403).json({ message: 'You can only edit your own profile.' });
+    }
 
     const updateFields = {
       updatedAt: new Date()
@@ -184,8 +192,10 @@ router.put('/profile/:username', async (req, res) => {
   }
 });
 
+// DELETE /api/auth/profile/:username
 router.delete('/profile/:id', async (req, res) => {
   const { id } = req.params;
+  const { requester } = req.body;
 
   try {
     const db = getDB();
@@ -197,6 +207,14 @@ router.delete('/profile/:id', async (req, res) => {
 
     if (!user) {
       return res.status(404).json({ message: 'User not found.' });
+    }
+
+    const requesterUser = await db.collection('users').findOne({ username: requester });
+    const isAdmin = requesterUser && requesterUser.role === 'admin';
+    const isSelf = requester === user.username;
+
+    if (!isAdmin && !isSelf) {
+      return res.status(403).json({ message: 'You do not have permission to delete this account.' });
     }
 
     const userId = user._id;

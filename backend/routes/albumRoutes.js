@@ -278,9 +278,9 @@ router.delete('/:id/posts/:postId', async (req, res) => {
 
     const remainingPosts = await db.collection('albumPosts').countDocuments({ albumId: new ObjectId(id) });
 
-    if (remainingPosts === 0) {      
+    if (remainingPosts === 0) {
       const album = await db.collection('albums').findOne({ _id: new ObjectId(id) });
-      if (album) {        
+      if (album) {
         await db.collection('albums').deleteOne({ _id: new ObjectId(id) });
       }
     }
@@ -294,6 +294,7 @@ router.delete('/:id/posts/:postId', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
+  const { requester } = req.body || {};
 
   if (!ObjectId.isValid(id)) {
     return res.status(400).json({ message: 'Invalid Album ID.' });
@@ -302,6 +303,17 @@ router.delete('/:id', async (req, res) => {
   try {
     const db = getDB();
     const albumObjectId = new ObjectId(id);
+
+    const album = await db.collection('albums').findOne({ _id: new ObjectId(id) });
+    if (!album) return res.status(404).json({ message: 'Album not found.' });
+
+    const user = await db.collection('users').findOne({ username: requester });
+    const isAdmin = user && user.role === 'admin';
+    const isOwner = album.userId.toString() === user?._id.toString();
+
+    if (!isAdmin && !isOwner) {
+      return res.status(403).json({ message: 'You do not have permission to delete this album.' });
+    }
 
     await db.collection('albums').deleteOne({ _id: albumObjectId });
     await db.collection('albumPosts').deleteMany({ albumId: albumObjectId });
@@ -329,6 +341,18 @@ router.put('/:id', async (req, res) => {
 
   try {
     const db = getDB();
+
+    const album = await db.collection('albums').findOne({ _id: new ObjectId(id) });
+    if (!album) return res.status(404).json({ message: 'Album not found.' });
+
+    const user = await db.collection('users').findOne({ username: requester });
+    const isAdmin = user && user.role === 'admin';
+    const isOwner = album.userId.toString() === user?._id.toString();
+
+    if (!isAdmin && !isOwner) {
+      return res.status(403).json({ message: 'You do not have permission to edit this album.' });
+    }
+
     const updateFields = {
       updatedAt: new Date()
     };

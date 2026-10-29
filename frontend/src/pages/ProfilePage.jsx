@@ -24,6 +24,8 @@ export default function ProfilePage() {
 
     const targetUsername = (id || loggedInUser.username).toLowerCase();
     const isOwnProfile = loggedInUser.username.toLowerCase() === targetUsername;
+    const isAdmin = loggedInUser?.role === 'admin';
+    const canEdit = isOwnProfile || isAdmin;
 
     const [profile, setProfile] = useState({
         id: targetUsername,
@@ -255,7 +257,11 @@ export default function ProfilePage() {
         }
 
         try {
-            await fetch(`http://localhost:5000/api/albums/${albumId}`, { method: 'DELETE' });
+            await fetch(`http://localhost:5000/api/albums/${albumId}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ requester: loggedInUser.username })
+            });
         } catch {
             // Local fallback
         }
@@ -292,7 +298,9 @@ export default function ProfilePage() {
     const handleRemovePostFromAlbum = async (albumId, postId) => {
         try {
             await fetch(`http://localhost:5000/api/albums/${albumId}/posts/${postId}`, {
-                method: 'DELETE'
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ requester: loggedInUser.username })
             });
         } catch {
 
@@ -301,7 +309,7 @@ export default function ProfilePage() {
         const currentAlbum = userAlbums.find(a => a.id === albumId);
         const isLastPost = currentAlbum && currentAlbum.posts && currentAlbum.posts.length <= 1;
 
-        if (isLastPost) {            
+        if (isLastPost) {
             setUserAlbums((prev) => prev.filter((a) => a.id !== albumId));
             setSelectedAlbum(null);
             return;
@@ -357,7 +365,7 @@ export default function ProfilePage() {
             const res = await fetch(`http://localhost:5000/api/albums/${alb.id}`);
             if (res.ok) {
                 const freshData = await res.json();
-                setSelectedAlbum(freshData);                
+                setSelectedAlbum(freshData);
                 setUserAlbums((prev) =>
                     prev.map((a) => (a.id === freshData.id ? freshData : a))
                 );
@@ -552,15 +560,15 @@ export default function ProfilePage() {
                         </div>
                     </section>
 
-                    {isOwnProfile && (
+                    {canEdit && (
                         <div className="wf-profile-actions-bar">
-                            <button
+                            {isOwnProfile && <button
                                 type="button"
                                 className="wireframe-btn wf-btn"
                                 onClick={() => setShowRequests(true)}
                             >
                                 Requests {pendingRequests.length > 0 && `(${pendingRequests.length})`}
-                            </button>
+                            </button>}
                             <button
                                 type="button"
                                 className="wireframe-btn wf-btn"
