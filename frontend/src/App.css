@@ -2702,3 +2702,51 @@ body {
   background-color: var(--tags-color);
   color: var(--text-main);
 }
+
+/*----------------- Reported Post Cover -----------------*/
+
+.reported-cover-overlay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 1.15 / 1;
+  background-color: #d6dbcf;
+  border: 2px dashed var(--accent-green);
+  border-radius: 4px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.reported-cover-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+  gap: 12px;
+}
+
+.reported-warning-icon {
+  font-size: 3rem;
+  color: var(--accent-green);
+}
+
+.reported-text {
+  font-family: var(--font-main);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-main);
+  max-width: 80%;
+}
+
+.reported-view-btn {
+  background-color: var(--accent-green);
+  padding: 8px 20px;
+  font-size: 0.95rem;
+}
+
+.reported-view-btn:hover {
+  background-color: var(--accent-green);
+}

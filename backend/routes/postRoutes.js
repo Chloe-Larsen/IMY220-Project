@@ -31,7 +31,7 @@ router.get('/', async (req, res) => {
 
   try {
     const db = getDB();
-    let filter = { isReportedHidden: { $ne: true } };
+    let filter = {};
 
     if (feed === 'local' && username) {
       const currentUser = await db.collection('users').findOne({
@@ -118,6 +118,7 @@ router.get('/', async (req, res) => {
           imageUrl: 1,
           hashtags: 1,
           createdAt: 1,
+          isReportedHidden: 1,
           username: '$author.username',
           likes: { $size: '$likes' },
           comments: '$comments',
@@ -285,6 +286,7 @@ router.delete('/:id', async (req, res) => {
     await db.collection('likes').deleteMany({ postId });
     await db.collection('albumPosts').deleteMany({ postId });
     await db.collection('activities').deleteMany({ postId });
+    await db.collection('reports').deleteMany({ postId: postId });
 
     res.status(200).json({ message: 'Post deleted successfully.' });
   } catch (error) {
@@ -371,10 +373,19 @@ router.post('/:id/comments', async (req, res) => {
 // POST /api/posts/:id/report
 router.post('/:id/report', async (req, res) => {
   const { reporter, reason } = req.body;
+  const rawPostId = req.params.id;
+
+  if (!ObjectId.isValid(rawPostId)) {
+    return res.status(400).json({ message: 'Invalid Post ID.' });
+  }
 
   try {
     const db = getDB();
     const postId = new ObjectId(req.params.id);
+    const post = await db.collection('posts').findOne({ _id: postId });
+    
+    if (!post) return res.status(404).json({ message: 'Post not found.' });
+
     const user = await db.collection('users').findOne({ username: reporter });
     const reasonDoc = await db.collection('reportReasons').findOne({ reason });
 
@@ -390,7 +401,7 @@ router.post('/:id/report', async (req, res) => {
     });
 
     const reportCount = await db.collection('reports').countDocuments({ postId });
-    if (reportCount >= 2) {
+    if (reportCount >= 3) {
       await db.collection('posts').updateOne(
         { _id: postId },
         { $set: { isReportedHidden: true } }

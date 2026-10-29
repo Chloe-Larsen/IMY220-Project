@@ -16,6 +16,11 @@ export default function AdminPage() {
 
     useEffect(() => {
         fetchTabContent();
+
+        fetch('http://localhost:5000/api/admin/report-reasons')
+            .then(res => res.json())
+            .then(data => setReasons(Array.isArray(data) ? data : []))
+            .catch(() => console.error("Failed to load reasons for dropdown"));
     }, [activeTab]);
 
     const showStatus = (msg) => {
@@ -80,9 +85,6 @@ export default function AdminPage() {
         } catch {
             showStatus('Failed to connect to server.');
         }
-
-        setNewReason('');
-        showStatus('New report reason successfully added to database.');
     };
 
     const handleDeleteReason = async (reasonId) => {
@@ -109,6 +111,29 @@ export default function AdminPage() {
             }
         } catch {
             showStatus('Failed to dismiss report.');
+        }
+    };
+
+    const handleUpdateReportReason = async (reportId, newReasonId) => {
+        try {
+            const res = await fetch(`http://localhost:5000/api/admin/reports/${reportId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ reasonId: newReasonId })
+            });
+
+            if (res.ok) {
+                const newReasonText = reasons.find(r => r.id === newReasonId)?.reason || 'Unspecified';
+                setReports(prev => prev.map(r =>
+                    r.id === reportId ? { ...r, reason: newReasonText, reasonId: newReasonId } : r
+                ));
+                showStatus('Report reason updated.');
+            } else {
+                const data = await res.json();
+                showStatus(data.message || 'Failed to update reason.');
+            }
+        } catch {
+            showStatus('Failed to connect to server.');
         }
     };
 
@@ -264,7 +289,18 @@ export default function AdminPage() {
                                                 <div className="admin-report-info">
                                                     <div className="admin-report-title-row">
                                                         <FiAlertCircle className="admin-alert-icon" />
-                                                        <strong>Reason: {report.reason}</strong>
+                                                        <strong>Reason: </strong>
+                                                        <select
+                                                            className="filter-select"
+                                                            style={{ padding: '4px 8px', fontSize: '0.9rem', maxWidth: '250px' }}
+                                                            value={report.reasonId || ''}
+                                                            onChange={(e) => handleUpdateReportReason(report.id, e.target.value)}
+                                                        >
+                                                            <option value="" disabled>Select a reason...</option>
+                                                            {reasons.map(r => (
+                                                                <option key={r.id} value={r.id}>{r.reason}</option>
+                                                            ))}
+                                                        </select>
                                                     </div>
                                                     <span className="admin-report-meta">
                                                         Reported by <em>@{report.reporter}</em> against Post #{report.postId} by{' '}

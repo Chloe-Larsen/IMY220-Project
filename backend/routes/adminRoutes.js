@@ -143,6 +143,7 @@ router.get('/reports', async (req, res) => {
                     postId: '$postId',
                     reporter: { $ifNull: ['$reporterDoc.username', 'anonymous'] },
                     reason: { $ifNull: ['$reasonDoc.reason', 'Unspecified'] },
+                    reasonId: '$reasonId',
                     postCaption: { $ifNull: ['$postDoc.caption', ''] },
                     postUsername: { $ifNull: ['$postAuthor.username', 'unknown'] },
                     reportedAt: 1
@@ -176,7 +177,7 @@ router.delete('/reports/:id', async (req, res) => {
 
         await db.collection('reports').deleteOne({ _id: reportId });
         const remainingCount = await db.collection('reports').countDocuments({ postId: report.postId });
-        if (remainingCount <= 2) {
+        if (remainingCount < 3) {
             await db.collection('posts').updateOne(
                 { _id: report.postId },
                 { $set: { isReportedHidden: false } }
@@ -184,6 +185,35 @@ router.delete('/reports/:id', async (req, res) => {
         }
 
         return res.status(200).json({ message: 'Report dismissed.' });
+    } catch (error) {
+        console.error('Error dismissing report:', error);
+        return res.status(500).json({ message: 'Error dismissing report', error: error.message });
+    }
+});
+
+// PUT /api/admin/reports/:id
+router.put('/reports/:id', async (req, res) => {
+    const { id } = req.params;
+    const { reasonId } = req.body;
+
+    if (!ObjectId.isValid(id) || !ObjectId.isValid(reasonId)) {
+        return res.status(400).json({ message: 'Invalid Report ID or reason id.' });
+    }
+
+    try {
+        const db = getDB();
+        const reportId = new ObjectId(id);
+
+        const result = await db.collection('reports').updateOne(
+            { _id: new ObjectId(id) },
+            { $set: { reasonId: new ObjectId(reasonId) } }
+        );
+
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ message: 'Report not found.' });
+        }
+
+        return res.status(200).json({ message: 'Report reason updated successfully.' });
     } catch (error) {
         console.error('Error dismissing report:', error);
         return res.status(500).json({ message: 'Error dismissing report', error: error.message });
@@ -258,78 +288,6 @@ router.delete('/users/:id', async (req, res) => {
     } catch (error) {
         console.error('Error suspending user:', error);
         return res.status(500).json({ message: 'Error suspending user', error: error.message });
-    }
-});
-
-// POST /api/posts/:id/report
-router.post('/:id/report', async (req, res) => {
-    const { id } = req.params;
-    const { reporter, reason } = req.body;
-
-    if (!ObjectId.isValid(id)) {
-        return res.status(400).json({ message: 'Invalid Post ID.' });
-    }
-
-    if (!reporter || !reason) {
-        return res.status(400).json({ message: 'Reporter username and report reason are required.' });
-    }
-
-    try {
-        const db = getDB();
-        const postObjectId = new ObjectId(id);    
-        const post = await db.collection('posts').findOne({ _id: postObjectId });
-        if (!post) {
-            return res.status(404).json({ message: 'Post not found.' });
-        }        
-        const user = await db.collection('users').findOne({
-            username: reporter.toLowerCase().trim()
-        });
-        if (!user) {
-            return res.status(404).json({ message: 'Reporter user not found.' });
-        }        
-        let reasonDoc = await db.collection('reportReasons').findOne({
-            reason: new RegExp(`^${reason.trim()}$`, 'i')
-        });        
-        if (!reasonDoc) {
-            const insertReason = await db.collection('reportReasons').insertOne({
-                reason: reason.trim(),
-                createdById: user._id,
-                createdAt: new Date()
-            });
-            reasonDoc = { _id: insertReason.insertedId };
-        }
-        
-        const existingReport = await db.collection('reports').findOne({
-            postId: postObjectId,
-            reporterId: user._id
-        });
-
-        if (existingReport) {
-            return res.status(400).json({ message: 'You have already reported this post.' });
-        }        
-        const reportDoc = {
-            postId: postObjectId,
-            reporterId: user._id,
-            reasonId: reasonDoc._id,
-            reportedAt: new Date()
-        };
-
-        await db.collection('reports').insertOne(reportDoc);                
-        const reportCount = await db.collection('reports').countDocuments({ postId: postObjectId });
-        if (reportCount >= 3) {
-            await db.collection('posts').updateOne(
-                { _id: postObjectId },
-                { $set: { isReportedHidden: true } }
-            );
-        }
-
-        return res.status(201).json({ message: 'Report submitted successfully.' });
-    } catch (error) {
-        console.error('Error reporting post:', error);
-        if (error.errInfo?.details?.schemaRulesNotSatisfied) {
-            console.dir(error.errInfo.details.schemaRulesNotSatisfied, { depth: null });
-        }
-        return res.status(500).json({ message: 'Error submitting report', error: error.message });
     }
 });
 
