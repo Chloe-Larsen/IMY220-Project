@@ -14,6 +14,8 @@ export default function AdminPage() {
     const [error, setError] = useState('');
     const [statusMessage, setStatusMessage] = useState('');
 
+    const loggedInUser = JSON.parse(localStorage.getItem('user'));
+
     useEffect(() => {
         fetchTabContent();
 
@@ -143,7 +145,11 @@ export default function AdminPage() {
         }
 
         try {
-            const postRes = await fetch(`http://localhost:5000/api/posts/${postId}`, { method: 'DELETE' });
+            const postRes = await fetch(`http://localhost:5000/api/posts/${postId}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ requester: loggedInUser.username })
+            });
             if (postRes.ok) {
                 setReports((prev) => prev.filter((r) => r.id !== reportId));
                 showStatus(`Post #${postId} deleted and report resolved.`);
@@ -357,7 +363,7 @@ export default function AdminPage() {
                                                         <button
                                                             type="button"
                                                             className="wireframe-btn"
-                                                            style={{marginRight: "10px"}}
+                                                            style={{ marginRight: "10px" }}
                                                             onClick={() => window.location.href = `/profile/${u.username}`}
                                                         >
                                                             Edit Profile

@@ -10,7 +10,7 @@ export default function SplashPage() {
 
   return (
     <div className="app-container">
-      <Navigation isLoggedIn={false} />
+      <Navigation/>
 
       <main className="splash-desktop-container">
         <section className="splash-hero-left">
@@ -43,7 +43,7 @@ export default function SplashPage() {
           </div>
         </section>
       </main>
-      <Footer isLoggedIn={false} />
+      <Footer/>
     </div>
   );
 }

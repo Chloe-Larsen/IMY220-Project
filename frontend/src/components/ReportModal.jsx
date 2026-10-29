@@ -54,7 +54,7 @@ export default function ReportModal({ postId, currentUsername, onClose, onSubmit
                 setError(data.message || 'Failed to submit report.');
             }
         } catch {
-            console.error('Error submitting report:', err);
+            console.error('Error submitting report:');
             setError('Network error: Could not reach the backend server.');
         } finally {
             setSubmitting(false);

@@ -45,7 +45,7 @@ export default function LoginPage() {
 
     return (
         <div className="app-container login-desktop-container">
-            <Navigation isLoggedIn={false} />
+            <Navigation/>
             <main className="login-desktop-split">
                 <section className="login-left-pane">
                     <form onSubmit={handleSubmit} className="login-form-content">
@@ -108,7 +108,7 @@ export default function LoginPage() {
                     />
                 </section>
             </main>
-            <Footer isLoggedIn={false} />
+            <Footer />
         </div>
     );
 }

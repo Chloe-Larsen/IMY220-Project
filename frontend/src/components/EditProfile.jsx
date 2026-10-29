@@ -99,7 +99,7 @@ export default function EditProfile({ profile, onSave, onCancel, onDelete }) {
               <input
                 id="edit-surname"
                 type="text"
-                surname="surname"
+                name="surname"
                 className="edit-wireframe-input"
                 value={formData.surname}
                 onChange={handleChange}

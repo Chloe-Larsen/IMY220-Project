@@ -68,7 +68,7 @@ export default function SignUpPage() {
 
   return (
     <div className="app-container signup-wireframe-screen">
-      <Navigation isLoggedIn={false} />
+      <Navigation/>
 
       <div className="signup-bottom-action-row">
         <button
@@ -220,7 +220,7 @@ export default function SignUpPage() {
           </button>
         </div>
       </form>
-      <Footer isLoggedIn={false} />
+      <Footer/>
     </div>
   );
 }
