@@ -125,7 +125,8 @@ router.get('/profile/:username', async (req, res) => {
     return res.status(200).json({
       id: user._id,
       username: user.username,
-      name: `${user.name} ${user.surname}`.trim(),
+      name: `${user.name}`.trim(),
+      surname: `${user.surname}`.trim(),
       pronouns: user.pronouns || '',
       links: user.links || '',
       bio: user.bio || '',
@@ -133,7 +134,8 @@ router.get('/profile/:username', async (req, res) => {
       friends: friendDocs.map((f) => ({
         id: f._id,
         username: f.username,
-        name: `${f.name} ${f.surname}`.trim()
+        name: f.name,
+        surname: f.surname
       }))
     });
   } catch (error) {
@@ -141,20 +143,28 @@ router.get('/profile/:username', async (req, res) => {
   }
 });
 
-// PUT /api/auth/profile/:id
 // PUT /api/auth/profile/:username
 router.put('/profile/:username', async (req, res) => {
   const { username } = req.params;
-  const { name, pronouns, links, bio, avatarUrl } = req.body;
+  const { name, surname, pronouns, links, bio, avatarUrl, requester } = req.body;
 
   try {
     const db = getDB();
+
+    const requesterUser = await db.collection('users').findOne({ username: requester });
+    const isAdmin = requesterUser && requesterUser.role === 'admin';
+    const isSelf = requester === username;
+
+    if (!isAdmin && !isSelf) {
+      return res.status(403).json({ message: 'You can only edit your own profile.' });
+    }
 
     const updateFields = {
       updatedAt: new Date()
     };
 
     if (name !== undefined) updateFields.name = String(name).trim();
+    if (surname !== undefined) updateFields.surname = String(surname).trim();
     if (pronouns !== undefined) updateFields.pronouns = String(pronouns).trim();
     if (links !== undefined) updateFields.links = String(links).trim();
     if (bio !== undefined) updateFields.bio = String(bio).trim();
@@ -182,8 +192,10 @@ router.put('/profile/:username', async (req, res) => {
   }
 });
 
+// DELETE /api/auth/profile/:username
 router.delete('/profile/:id', async (req, res) => {
   const { id } = req.params;
+  const { requester } = req.body;
 
   try {
     const db = getDB();
@@ -195,6 +207,14 @@ router.delete('/profile/:id', async (req, res) => {
 
     if (!user) {
       return res.status(404).json({ message: 'User not found.' });
+    }
+
+    const requesterUser = await db.collection('users').findOne({ username: requester });
+    const isAdmin = requesterUser && requesterUser.role === 'admin';
+    const isSelf = requester === user.username;
+
+    if (!isAdmin && !isSelf) {
+      return res.status(403).json({ message: 'You do not have permission to delete this account.' });
     }
 
     const userId = user._id;

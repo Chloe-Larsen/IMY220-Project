@@ -31,7 +31,7 @@ router.get('/', async (req, res) => {
 
   try {
     const db = getDB();
-    let filter = { isReportedHidden: { $ne: true } };
+    let filter = {};
 
     if (feed === 'local' && username) {
       const currentUser = await db.collection('users').findOne({
@@ -118,6 +118,7 @@ router.get('/', async (req, res) => {
           imageUrl: 1,
           hashtags: 1,
           createdAt: 1,
+          isReportedHidden: 1,
           username: '$author.username',
           likes: { $size: '$likes' },
           comments: '$comments',
@@ -192,6 +193,22 @@ router.get('/:id', async (req, res) => {
         }
       },
       {
+        $lookup: {
+          from: 'albumPosts',
+          localField: '_id',
+          foreignField: 'postId',
+          as: 'albumLinks'
+        }
+      },
+      {
+        $lookup: {
+          from: 'albums',
+          localField: 'albumLinks.albumId',
+          foreignField: '_id',
+          as: 'albums'
+        }
+      },
+      {
         $project: {
           id: '$_id',
           caption: 1,
@@ -200,7 +217,17 @@ router.get('/:id', async (req, res) => {
           createdAt: 1,
           username: '$author.username',
           likes: { $size: '$likes' },
-          comments: '$comments'
+          comments: '$comments',
+          albums: {
+            $map: {
+              input: '$albums',
+              as: 'album',
+              in: {
+                id: '$$album._id',
+                name: '$$album.name'
+              }
+            }
+          }
         }
       }
     ]).toArray();
@@ -255,7 +282,18 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const db = getDB();
-    const { caption, hashtags } = req.body;
+    const { caption, hashtags, requester } = req.body; // <-- Add requester
+
+    const post = await db.collection('posts').findOne({ _id: new ObjectId(req.params.id) });
+    if (!post) return res.status(404).json({ message: 'Post not found' });
+
+    const user = await db.collection('users').findOne({ username: requester });
+    const isAdmin = user && user.role === 'admin';
+    const isOwner = requester === (await db.collection('users').findOne({ _id: post.userId }))?.username;
+
+    if (!isAdmin && !isOwner) {
+      return res.status(403).json({ message: 'You do not have permission to edit this post.' });
+    }
 
     await db.collection('posts').updateOne(
       { _id: new ObjectId(req.params.id) },
@@ -280,11 +318,40 @@ router.delete('/:id', async (req, res) => {
     const db = getDB();
     const postId = new ObjectId(req.params.id);
 
+    const requester = req.body.requester;
+
+    const post = await db.collection('posts').findOne({ _id: postId });
+    if (!post) return res.status(404).json({ message: 'Post not found' });
+
+    const user = await db.collection('users').findOne({ username: requester });
+    const isAdmin = user && user.role === 'admin';
+    const isOwner = requester === (await db.collection('users').findOne({ _id: post.userId }))?.username;
+
+    if (!isAdmin && !isOwner) {
+      return res.status(403).json({ message: 'You do not have permission to delete this post.' });
+    }
+
+    const albumLinks = await db.collection('albumPosts').find({ postId }).toArray();
+    const affectedAlbumIds = albumLinks.map(link => link.albumId);
+
     await db.collection('posts').deleteOne({ _id: postId });
     await db.collection('comments').deleteMany({ postId });
     await db.collection('likes').deleteMany({ postId });
     await db.collection('albumPosts').deleteMany({ postId });
     await db.collection('activities').deleteMany({ postId });
+    await db.collection('reports').deleteMany({ postId: postId });
+
+    for (const albumId of affectedAlbumIds) {
+      const remainingCount = await db.collection('albumPosts').countDocuments({ albumId });
+
+      if (remainingCount === 0) {
+        const album = await db.collection('albums').findOne({ _id: albumId });
+
+        if (album) {
+          await db.collection('albums').deleteOne({ _id: albumId });
+        }
+      }
+    }
 
     res.status(200).json({ message: 'Post deleted successfully.' });
   } catch (error) {
@@ -371,10 +438,19 @@ router.post('/:id/comments', async (req, res) => {
 // POST /api/posts/:id/report
 router.post('/:id/report', async (req, res) => {
   const { reporter, reason } = req.body;
+  const rawPostId = req.params.id;
+
+  if (!ObjectId.isValid(rawPostId)) {
+    return res.status(400).json({ message: 'Invalid Post ID.' });
+  }
 
   try {
     const db = getDB();
     const postId = new ObjectId(req.params.id);
+    const post = await db.collection('posts').findOne({ _id: postId });
+
+    if (!post) return res.status(404).json({ message: 'Post not found.' });
+
     const user = await db.collection('users').findOne({ username: reporter });
     const reasonDoc = await db.collection('reportReasons').findOne({ reason });
 
@@ -390,7 +466,7 @@ router.post('/:id/report', async (req, res) => {
     });
 
     const reportCount = await db.collection('reports').countDocuments({ postId });
-    if (reportCount >= 2) {
+    if (reportCount >= 3) {
       await db.collection('posts').updateOne(
         { _id: postId },
         { $set: { isReportedHidden: true } }

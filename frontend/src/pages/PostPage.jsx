@@ -4,7 +4,7 @@ import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
 import EditPost from '../components/EditPost';
 import Comments from '../components/Comments';
-import { FiHeart, FiClock, FiMoreHorizontal, FiEdit2, FiAlertCircle, FiTrash2 } from 'react-icons/fi';
+import { FiHeart, FiClock, FiMoreHorizontal, FiEdit2, FiAlertCircle, FiTrash2, FiFolder } from 'react-icons/fi';
 import Image from '../components/Image';
 import ReportModal from '../components/ReportModal';
 
@@ -67,8 +67,9 @@ export default function PostPage() {
     return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, []);
 
-  const isOwner =
-    post && loggedInUser.username.toLowerCase() === post.username.toLowerCase();
+  const isOwner = post && loggedInUser.username.toLowerCase() === post.username.toLowerCase();
+  const isAdmin = loggedInUser.role === 'admin';  
+  const canEditDelete = isOwner || isAdmin;
 
   const handleToggleLike = async () => {
     const nextLikedState = !isLiked;
@@ -110,7 +111,10 @@ export default function PostPage() {
       await fetch(`http://localhost:5000/api/posts/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedData)
+        body: JSON.stringify({
+          ...updatedData,
+          requester: loggedInUser.username
+        })
       });
     } catch {
       // Local fallback
@@ -134,7 +138,9 @@ export default function PostPage() {
 
     try {
       const res = await fetch(`http://localhost:5000/api/posts/${id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requester: loggedInUser.username })
       });
 
       if (res.ok) {
@@ -236,7 +242,7 @@ export default function PostPage() {
   if (loading) {
     return (
       <div className="app-container postpage-desktop-screen">
-        <Navigation  />
+        <Navigation />
         <main className="postpage-desktop-split-layout">
           <div className="postpage-desktop-left-col">
             <div className="postpage-skeleton-box skeleton-shimmer" />
@@ -247,7 +253,7 @@ export default function PostPage() {
             <div className="postpage-skeleton-line postpage-skeleton-body skeleton-shimmer" />
           </div>
         </main>
-        <Footer  />
+        <Footer />
       </div>
     );
   }
@@ -255,7 +261,7 @@ export default function PostPage() {
   if (!post) {
     return (
       <div className="app-container postpage-desktop-screen">
-        <Navigation  />
+        <Navigation />
         <main className="postpage-desktop-split-layout postpage-empty-layout">
           <div className="search-empty-state">
             <p className="empty-title">Post not found</p>
@@ -268,14 +274,16 @@ export default function PostPage() {
             </button>
           </div>
         </main>
-        <Footer  />
+        <Footer />
       </div>
     );
   }
 
+  
+
   return (
     <div className="app-container postpage-desktop-screen">
-      <Navigation  />
+      <Navigation />
 
       <main className="postpage-desktop-split-layout">
         <div className="postpage-desktop-left-col">
@@ -323,7 +331,7 @@ export default function PostPage() {
 
               {showOptionsMenu && (
                 <div className="postpage-dropdown-menu">
-                  {isOwner ? (
+                  {canEditDelete ? (
                     <>
                       <button
                         type="button"
@@ -387,6 +395,24 @@ export default function PostPage() {
               </div>
 
               <div className="postpage-tags-list">{renderHashtags()}</div>
+
+              {post.albums && post.albums.length > 0 && (
+                <div className="postpage-albums-container">
+                  <span className="postpage-albums-label">Featured in albums:</span>
+                  {post.albums.map(album => (
+                    <Link
+                      key={album.id}
+                      to={`/profile/${post.username}`}
+                      className="postpage-album-badge"
+                      title="View albums on profile"
+                    >
+                      <FiFolder className="postpage-album-icon" />
+                      {album.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+
               <p className="postpage-caption-text">
                 {post.caption || 'No description provided.'}
               </p>
@@ -412,12 +438,11 @@ export default function PostPage() {
           onClose={() => setShowReportModal(false)}
           onSubmitSuccess={() => {
             setShowReportModal(false);
-            alert(`Report submitted for post #${id}. Our team will review it.`);
           }}
         />
       )}
 
-      <Footer  />
+      <Footer />
     </div>
   );
 }

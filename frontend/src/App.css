@@ -254,9 +254,9 @@ body {
   border: 1px solid var(--border-muted);
 }
 
-.login-wireframe-input::placeholder {
-  color: #8b9287;
-  font-family: var(--font-main);
+.login-wireframe-input:focus {
+  outline: 2px solid var(--accent-green) !important;
+  background-color: #ffffff !important;
 }
 
 .forgot-password-text {
@@ -432,8 +432,8 @@ body {
 }
 
 .signup-pronoun-input-container input:focus {
-  outline: none;
-  background: transparent;
+  outline: 2px solid var(--accent-green);
+  background-color: #ffffff;
 }
 
 .signup-link-input-container {
@@ -454,8 +454,8 @@ body {
 }
 
 .signup-link-input-container input:focus {
-  outline: none;
-  background: transparent;
+  outline: 2px solid var(--accent-green);
+  background-color: #ffffff;
 }
 
 .link-plus-btn {
@@ -2361,7 +2361,7 @@ body {
 }
 
 .activity-filter-pill.active {
-  background-color:  #66815D;
+  background-color: #66815D;
   color: #ffffff;
   border-color: #66815D;
 }
@@ -2425,6 +2425,78 @@ body {
   text-decoration: none;
   font-size: 0.85rem;
   color: var(--text-muted, #7b8377);
+}
+
+.activity-friend-media-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #d6dbcf;
+  cursor: pointer;
+  height: 220px;
+  overflow: hidden;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.activity-friend-media-box:hover {
+  background-color: #c9cfc1;
+}
+
+.activity-friend-pair {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+}
+
+.activity-avatar-slot {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--tags-color);
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.activity-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.activity-avatar-placeholder {
+  font-family: var(--font-main);
+  font-size: 2rem;
+  font-weight: 700;
+  color: #555b51;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.activity-friend-link-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: var(--accent-green);
+  flex-shrink: 0;
+}
+
+.activity-inline-link {
+  color: var(--accent-green);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.activity-inline-link:hover {
+  color: var(--accent-green-hover);
 }
 
 /*----------------- ADMIN Page -----------------*/
@@ -2629,4 +2701,258 @@ body {
 .admin-user-role-badge.role-user {
   background-color: var(--tags-color);
   color: var(--text-main);
+}
+
+/*----------------- Reported Post Cover -----------------*/
+
+.reported-cover-overlay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 1.15 / 1;
+  background-color: #d6dbcf;
+  border: 2px dashed var(--accent-green);
+  border-radius: 4px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.reported-cover-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+  gap: 12px;
+}
+
+.reported-warning-icon {
+  font-size: 3rem;
+  color: var(--accent-green);
+}
+
+.reported-text {
+  font-family: var(--font-main);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-main);
+  max-width: 80%;
+}
+
+.reported-view-btn {
+  background-color: var(--accent-green);
+  padding: 8px 20px;
+  font-size: 0.95rem;
+}
+
+.reported-view-btn:hover {
+  background-color: var(--accent-green);
+}
+
+/*----------------- Post Page Albums -----------------*/
+
+.postpage-albums-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  margin-top: 4px;
+}
+
+.postpage-albums-label {
+  font-family: var(--font-main);
+  font-size: 0.9rem;
+  color: #7b8377;
+  font-style: italic;
+}
+
+.postpage-album-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #d6dbcf;
+  border: 1px solid var(--border-muted);
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-family: var(--font-main);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-main);
+  text-decoration: none;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.postpage-album-badge:hover {
+  background-color: var(--tags-color);
+  border-color: var(--accent-green);
+}
+
+.postpage-album-icon {
+  font-size: 0.9rem;
+  color: var(--accent-green);
+}
+
+/*----------------- Search Tabs & Results -----------------*/
+
+.search-tabs {
+  display: flex;
+  gap: 12px;
+  margin-top: 1.5vh;
+  border-bottom: 2px solid var(--border-muted);
+  padding-bottom: 8px;
+}
+
+.search-tab {
+  background: none;
+  border: none;
+  font-family: var(--font-main);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #7b8377;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.search-tab:hover {
+  background-color: #d6dbcf;
+}
+
+.search-tab.active {
+  color: #fff;
+  background-color: var(--accent-green);
+}
+
+.search-results-container {
+  padding: 2vh 5vw 4vh;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  width: 100%;
+}
+
+.search-section-title {
+  font-family: var(--font-main);
+  font-size: 1.4rem;
+  color: var(--text-main);
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-muted);
+}
+
+/* User Results */
+.search-user-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.search-user-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background-color: #d6dbcf;
+  border-radius: 8px;
+  text-decoration: none;
+  border: 1px solid var(--border-muted);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.search-user-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent-green);
+}
+
+.search-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: var(--tags-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  color: #555b51;
+  font-size: 1.2rem;
+}
+
+.search-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.search-user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.search-user-name {
+  font-weight: 600;
+  color: var(--text-main);
+  font-size: 1.05rem;
+}
+
+.search-user-handle {
+  color: #7b8377;
+  font-size: 0.9rem;
+}
+
+/* Album Results */
+.search-album-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.search-album-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background-color: #d6dbcf;
+  border-radius: 8px;
+  text-decoration: none;
+  border: 1px solid var(--border-muted);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.search-album-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent-green);
+}
+
+.search-album-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 6px;
+  background-color: var(--accent-green);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.search-album-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.search-album-name {
+  font-weight: 600;
+  color: var(--text-main);
+  font-size: 1.05rem;
+}
+
+.search-album-meta {
+  color: #7b8377;
+  font-size: 0.9rem;
 }

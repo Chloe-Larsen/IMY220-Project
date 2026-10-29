@@ -1,69 +1,49 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
 import PostPreview from '../components/PostPreview';
 import PostSkeleton from '../components/PostSkeleton';
-import { FiSearch } from 'react-icons/fi';
+import { FiSearch, FiUser, FiFolder, FiImage } from 'react-icons/fi';
+import Image from '../components/Image';
 
 export default function SearchPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const queryParam = searchParams.get('q') || '';
+  const typeParam = searchParams.get('type') || 'all';
 
   const [searchInput, setSearchInput] = useState(queryParam);
-  const [results, setResults] = useState([]);
+  const [results, setResults] = useState({ users: [], posts: [], albums: [] });
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [error, setError] = useState('');
+
+  const fetchSearchResults = async (term, type) => {
+    setLoading(true);
+    setError('');
+    setHasSearched(true);
+    try {
+      const response = await fetch(`http://localhost:5000/api/search?q=${encodeURIComponent(term)}&type=${type}`);
+      if (!response.ok) throw new Error('Search failed');
+      const data = await response.json();
+      setResults(data);
+    } catch {      setError('Could not connect to the search server.');
+
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     setSearchInput(queryParam);
 
     if (queryParam.trim()) {
-      fetchSearchResults(queryParam.trim());
+      fetchSearchResults(queryParam.trim(), typeParam);
     } else {
-      setResults([]);
+      setResults({ users: [], posts: [], albums: [] });
       setHasSearched(false);
     }
-  }, [queryParam]);
-
-  const fetchSearchResults = async (term) => {
-    setLoading(true);
-    setError('');
-    setHasSearched(true);
-    const startTime = Date.now();
-
-    // Strip leading # or @ so it doesn't break URL query strings
-    const cleanTerm = term.replace(/^[#@]/, '').trim();
-
-    try {
-      const response = await fetch(
-        `http://localhost:5000/api/posts?q=${encodeURIComponent(cleanTerm)}`
-      );
-
-      if (!response.ok) {
-        throw new Error(`Server returned status ${response.status}`);
-      }
-
-      const data = await response.json();
-      const elapsedTime = Date.now() - startTime;
-      const remainingTime = Math.max(0, 1000 - elapsedTime);
-
-      setTimeout(() => {
-        setResults(Array.isArray(data) ? data : []);
-        setLoading(false);
-      }, remainingTime);
-    } catch {
-      const elapsedTime = Date.now() - startTime;
-      const remainingTime = Math.max(0, 1000 - elapsedTime);
-
-      setTimeout(() => {
-        setError('Could not connect to the search server.');
-        setResults([]);
-        setLoading(false);
-      }, remainingTime);
-    }
-  };
+  }, [queryParam, typeParam]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -72,19 +52,18 @@ export default function SearchPage() {
       setSearchParams({});
       return;
     }
-    setSearchParams({ q: trimmed.replace(/^[#@]/, '') });
+    setSearchParams({ q: trimmed, type: typeParam });
   };
 
-  const handleClear = () => {
-    setSearchInput('');
-    setSearchParams({});
-    setResults([]);
-    setHasSearched(false);
+  const handleTabChange = (newType) => {
+    setSearchParams({ q: queryParam, type: newType });
   };
+
+  const totalResults = results.users.length + results.posts.length + results.albums.length;
 
   return (
     <div className="app-container search-desktop-screen">
-      <Navigation  search={true} />
+      <Navigation search={true} />
 
       <main className="search-main-container">
         <section className="search-bar-section">
@@ -95,71 +74,92 @@ export default function SearchPage() {
             <input
               type="text"
               className="search-field-input"
-              placeholder="Search by #hashtag, bird species, or @username..."
+              placeholder="Search by name, username, email, #hashtag, album..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               autoFocus
             />
-            {searchInput && (
-              <button type="button" className="search-clear-btn" onClick={handleClear}>
-                ✕
-              </button>
-            )}
-            <button type="submit" className="wireframe-btn search-submit-btn">
-              Search
-            </button>
+            <button type="submit" className="wireframe-btn search-submit-btn">Search</button>
           </form>
 
-          {queryParam && !loading && (
-            <div className="search-status-bar">
-              <span>
-                Showing results for: <strong>"{queryParam}"</strong> ({results.length} found)
-              </span>
+          {hasSearched && (
+            <div className="search-tabs">
+              {['all', 'users', 'posts', 'albums'].map((tab) => (
+                <button
+                  key={tab}
+                  className={`search-tab ${typeParam === tab ? 'active' : ''}`}
+                  onClick={() => handleTabChange(tab)}
+                >
+                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                </button>
+              ))}
             </div>
           )}
         </section>
 
-        <section className="home-post-grid-container">
-          {loading && (
-            <>
-              <PostSkeleton />
-              <PostSkeleton />
-            </>
-          )}
+        <section className="search-results-container">
+          {loading && <PostSkeleton />}
 
-          {error && !loading && (
-            <p className="form-error-msg" style={{ gridColumn: '1 / -1', margin: '20px auto', maxWidth: '500px' }}>
-              {error}
-            </p>
-          )}
+          {error && <p className="form-error-msg">{error}</p>}
 
-          {!loading && !error && hasSearched && results.length === 0 && (
+          {!loading && !error && hasSearched && totalResults === 0 && (
             <div className="search-empty-state">
-              <p className="empty-title">No sightings found</p>
-              <p className="empty-subtitle">Try searching for a different species, tag, or photographer handle.</p>
+              <p className="empty-title">No results found</p>
+              <p className="empty-subtitle">Try a different name, tag, or keyword.</p>
             </div>
           )}
 
-          {!loading && !error && !hasSearched && (
-            <div className="search-empty-state">
-              <p className="empty-title">Start discovering</p>
-              <p className="empty-subtitle">Enter a keyword or click on a hashtag to view matching bird sightings.</p>
+          {!loading && (typeParam === 'all' || typeParam === 'users') && results.users.length > 0 && (
+            <div className="search-section">
+              <h2 className="search-section-title">Users</h2>
+              <div className="search-user-grid">
+                {results.users.map(u => (
+                  <Link to={`/profile/${u.username}`} key={u.id} className="search-user-card">
+                    <div className="search-avatar">
+                      {u.avatarUrl ? <Image imageValue={u.avatarUrl} altText={u.username} /> : <FiUser />}
+                    </div>
+                    <div className="search-user-info">
+                      <span className="search-user-name">{u.name} {u.surname}</span>
+                      <span className="search-user-handle">@{u.username}</span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
             </div>
           )}
 
-          {!loading && !error && results.map((post, idx) => (
-            <div
-              key={post.id}
-              className="post-card-animated-wrapper"
-              style={{ animationDelay: `${idx * 0.15}s` }}
-            >
-              <PostPreview post={post} />
+          {!loading && (typeParam === 'all' || typeParam === 'posts') && results.posts.length > 0 && (
+            <div className="search-section">
+              <h2 className="search-section-title">Posts</h2>
+              <div className="home-post-grid-container">
+                {results.posts.map(post => (
+                  <PostPreview key={post.id} post={post} />
+                ))}
+              </div>
             </div>
-          ))}
+          )}
+
+          {!loading && (typeParam === 'all' || typeParam === 'albums') && results.albums.length > 0 && (
+            <div className="search-section">
+              <h2 className="search-section-title">Albums</h2>
+              <div className="search-album-grid">
+                {results.albums.map(album => (
+                  <Link to={`/profile/${album.username}`} key={album.id} className="search-album-card">
+                    <div className="search-album-icon"><FiFolder /></div>
+                    <div className="search-album-info">
+                      <span className="search-album-name">{album.name}</span>
+                      <span className="search-album-meta">@{album.username} • {album.photoCount} photos</span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
         </section>
       </main>
 
-      <Footer/>
+      <Footer />
     </div>
   );
 }

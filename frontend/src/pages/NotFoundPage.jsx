@@ -7,12 +7,9 @@ import Image from '../components/Image';
 export default function NotFoundPage() {
     const navigate = useNavigate();
 
-    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-    const isAuthenticated = Boolean(token);
-
     return (
         <div className="app-container notfound-desktop-container">
-            <Navigation isLoggedIn={isAuthenticated} />
+            <Navigation/>
 
             <main className="notfound-main-content">
                 <div className="notfound-left-pane">
@@ -43,7 +40,7 @@ export default function NotFoundPage() {
                 </div>
             </main>
 
-            <Footer isLoggedIn={isAuthenticated} />
+            <Footer/>
         </div>
     );
 }

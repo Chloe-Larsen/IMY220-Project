@@ -17,7 +17,7 @@ export default function ActivityPage() {
     setLoading(true);
     setError('');
     const startTime = Date.now();
-    
+
     fetch(`http://localhost:5000/api/activity?scope=${feedScope}`)
       .then((res) => {
         if (!res.ok) throw new Error(`Status: ${res.status}`);
@@ -34,13 +34,38 @@ export default function ActivityPage() {
         }, remainingTime);
       })
       .catch(() => {
+        const elapsedTime = Date.now() - startTime;
+        const remainingTime = Math.max(0, 1000 - elapsedTime);
+        setTimeout(() => {
+          setError('Failed to load activity feed.');
+          setLoading(false);
+        }, remainingTime);
       });
   }, [feedScope, loggedInUser.username]);
 
-  const displayedActivities = activities.filter((item) => {
+  const uniqueActivities = activities.filter((act, index, self) => {
+    if (act.actionType !== 'friend_accepted' && act.actionType !== 'friend_removed') {
+      return true;
+    }
+    const user1 = act.actor?.username;
+    const user2 = act.targetFriend?.username;
+    const pairKey = [user1, user2].sort().join('-') + '-' + act.actionType;
+    return self.findIndex((other) => {
+      if (other.actionType !== act.actionType) return false;
+      const other1 = other.actor?.username;
+      const other2 = other.targetFriend?.username;
+      const otherPairKey = [other1, other2].sort().join('-') + '-' + other.actionType;
+      return otherPairKey === pairKey;
+    }) === index;
+  });
+
+  const displayedActivities = uniqueActivities.filter((item) => {
     if (filterType === 'posts') return item.actionType === 'created_post';
     if (filterType === 'albums') {
       return item.actionType === 'created_album' || item.actionType === 'added_to_album';
+    }
+    if (filterType === 'friends') {
+      return item.actionType === 'friend_accepted' || item.actionType === 'friend_removed';
     }
     return true;
   });
@@ -49,7 +74,7 @@ export default function ActivityPage() {
     <div className="app-container home-desktop-screen">
       <Navigation isActivity={true} />
 
-      <main className="activity-page-main">        
+      <main className="activity-page-main">
         <div className="home-subbar">
           <div className="home-feed-toggle-group">
             <button
@@ -68,7 +93,7 @@ export default function ActivityPage() {
               Global Activity
             </button>
           </div>
-          
+
           <div className="activity-type-filters">
             <button
               type="button"
@@ -91,9 +116,16 @@ export default function ActivityPage() {
             >
               Albums
             </button>
+            <button
+              type="button"
+              className={`activity-filter-pill ${filterType === 'friends' ? 'active' : ''}`}
+              onClick={() => setFilterType('friends')}
+            >
+              Friends
+            </button>
           </div>
         </div>
-        
+
         <section className="home-post-grid-container">
           {loading && (
             <>
@@ -121,7 +153,7 @@ export default function ActivityPage() {
         </section>
       </main>
 
-      <Footer  />
+      <Footer />
     </div>
   );
 }

@@ -106,7 +106,8 @@ router.get('/', async (req, res) => {
           post: {
             id: '$postDoc._id',
             caption: '$postDoc.caption',
-            imageUrl: '$postDoc.imageUrl'
+            imageUrl: '$postDoc.imageUrl',
+            hashtags: '$postDoc.hashtags'
           },
           album: {
             id: '$albumDoc._id',
@@ -115,7 +116,8 @@ router.get('/', async (req, res) => {
           targetFriend: {
             id: '$friendDoc._id',
             username: '$friendDoc.username',
-            name: '$friendDoc.name'
+            name: '$friendDoc.name',
+            avatarUrl: '$friendDoc.avatarUrl'
           }
         }
       }

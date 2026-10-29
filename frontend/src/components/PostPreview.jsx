@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FiHeart, FiClock } from 'react-icons/fi';
+import { FiHeart, FiClock, FiAlertTriangle } from 'react-icons/fi';
 import Image from './Image';
 
 export default function PostPreview({ post }) {
@@ -8,6 +8,7 @@ export default function PostPreview({ post }) {
     const loggedInUser = JSON.parse(localStorage.getItem('user'))
     const [isLiked, setIsLiked] = useState(Boolean(post.isLiked));
     const [likesCount, setLikesCount] = useState(post.likes ?? 0);
+    const [showReportedPost, setShowReportedPost] = useState(false);
 
     useEffect(() => {
         setIsLiked(Boolean(post.isLiked));
@@ -63,8 +64,32 @@ export default function PostPreview({ post }) {
         });
     };
 
-    return (
-        <article className="feed-post-card">
+    const renderMedia = () => {
+        const isHidden = post.isReportedHidden;
+
+        if (isHidden && !showReportedPost) {            
+            return (
+                <div className="post-image-container reported-cover-overlay">
+                    <div className="reported-cover-content">
+                        <FiAlertTriangle className="reported-warning-icon" />
+                        <p className="reported-text">This post has been reported multiple times.</p>
+                        <button 
+                            type="button" 
+                            className="wireframe-btn reported-view-btn"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setShowReportedPost(true);
+                            }}
+                        >
+                            View Post Anyway
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+        
+        return (
             <Link to={`/post/${post.id}`} className="post-image-container">
                 {post.imageUrl ? (
                     <Image imageValue={post.imageUrl} alt={post.caption} className="post-photo-img" />
@@ -72,6 +97,12 @@ export default function PostPreview({ post }) {
                     <div className="post-image-placeholder" />
                 )}
             </Link>
+        );
+    };
+
+    return (
+        <article className="feed-post-card">
+            {renderMedia()}
 
             <div className="post-meta-details">
                 <div className="post-tags-user-row">

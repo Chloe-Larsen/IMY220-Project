@@ -4,9 +4,37 @@ import { getDB } from '../connection.js';
 
 const router = Router();
 
-// GET /api/albums?user=username
+function formatTimeAgo(date) {
+  if (!date) return 'just now';
+
+  const diffMs = Math.max(0, Date.now() - new Date(date).getTime());
+  const diffMins = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const diffWeeks = Math.floor(diffMs / (1000 * 60 * 60 * 24 * 7));
+
+  if (diffHours < 1) {
+    return `${Math.max(1, diffMins)}m`;
+  } else if (diffHours < 24) {
+    return `${diffHours}h`;
+  } else if (diffDays < 7) {
+    return `${diffDays}d`;
+  } else {
+    return `${diffWeeks} weeks`;
+  }
+}
+
+async function resolveUserId(db, username) {
+  if (!username) return null;
+  const user = await db.collection('users').findOne({
+    username: String(username).toLowerCase().trim()
+  });
+  return user ? user._id : null;
+}
+
+// GET /api/albums?user=username&viewer=username
 router.get('/', async (req, res) => {
-  const { user: username } = req.query;
+  const { user: username, viewer } = req.query;
 
   try {
     const db = getDB();
@@ -23,6 +51,8 @@ router.get('/', async (req, res) => {
 
       filter.userId = user._id;
     }
+
+    const viewerObjectId = await resolveUserId(db, viewer);
 
     const albums = await db.collection('albums').aggregate([
       { $match: filter },
@@ -44,6 +74,22 @@ router.get('/', async (req, res) => {
           localField: 'albumPostLinks.postId',
           foreignField: '_id',
           as: 'photos'
+        }
+      },      
+      {
+        $lookup: {
+          from: 'likes',
+          localField: 'albumPostLinks.postId',
+          foreignField: 'postId',
+          as: 'photoLikes'
+        }
+      },      
+      {
+        $lookup: {
+          from: 'comments',
+          localField: 'albumPostLinks.postId',
+          foreignField: 'postId',
+          as: 'photoComments'
         }
       },
       {
@@ -74,13 +120,57 @@ router.get('/', async (req, res) => {
                 caption: '$$photo.caption',
                 hashtags: '$$photo.hashtags',
                 createdAt: '$$photo.createdAt',
-                username: '$owner.username'
+                username: { $arrayElemAt: ['$owner.username', 0] },
+                likes: {
+                  $size: {
+                    $filter: {
+                      input: '$photoLikes',
+                      as: 'like',
+                      cond: { $eq: ['$$like.postId', '$$photo._id'] }
+                    }
+                  }
+                },
+                comments: {
+                  $filter: {
+                    input: '$photoComments',
+                    as: 'comment',
+                    cond: { $eq: ['$$comment.postId', '$$photo._id'] }
+                  }
+                },
+                isLiked: viewerObjectId
+                  ? {
+                    $in: [
+                      viewerObjectId,
+                      {
+                        $map: {
+                          input: {
+                            $filter: {
+                              input: '$photoLikes',
+                              as: 'like',
+                              cond: { $eq: ['$$like.postId', '$$photo._id'] }
+                            }
+                          },
+                          as: 'like',
+                          in: '$$like.userId'
+                        }
+                      }
+                    ]
+                  }
+                  : { $literal: false }
               }
             }
           }
         }
       }
     ]).toArray();
+    
+    for (const album of albums) {
+      if (Array.isArray(album.posts)) {
+        for (const post of album.posts) {
+          post.timeAgo = formatTimeAgo(post.createdAt);
+        }
+      }
+    }
 
     return res.status(200).json(albums);
   } catch (error) {
@@ -89,9 +179,10 @@ router.get('/', async (req, res) => {
   }
 });
 
-// GET /api/albums/:id
+// GET /api/albums/:id?viewer=username
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
+  const { viewer } = req.query;
 
   if (!ObjectId.isValid(id)) {
     return res.status(400).json({ message: 'Invalid Album ID.' });
@@ -100,6 +191,7 @@ router.get('/:id', async (req, res) => {
   try {
     const db = getDB();
     const albumId = new ObjectId(id);
+    const viewerObjectId = await resolveUserId(db, viewer);
 
     const albumList = await db.collection('albums').aggregate([
       { $match: { _id: albumId } },
@@ -127,6 +219,22 @@ router.get('/:id', async (req, res) => {
           foreignField: '_id',
           as: 'posts'
         }
+      },      
+      {
+        $lookup: {
+          from: 'likes',
+          localField: 'links.postId',
+          foreignField: 'postId',
+          as: 'postLikes'
+        }
+      },      
+      {
+        $lookup: {
+          from: 'comments',
+          localField: 'links.postId',
+          foreignField: 'postId',
+          as: 'postComments'
+        }
       },
       {
         $project: {
@@ -146,7 +254,44 @@ router.get('/:id', async (req, res) => {
                 imageUrl: '$$post.imageUrl',
                 caption: '$$post.caption',
                 hashtags: '$$post.hashtags',
-                createdAt: '$$post.createdAt'
+                createdAt: '$$post.createdAt',
+                username: '$owner.username',
+                likes: {
+                  $size: {
+                    $filter: {
+                      input: '$postLikes',
+                      as: 'like',
+                      cond: { $eq: ['$$like.postId', '$$post._id'] }
+                    }
+                  }
+                },
+                comments: {
+                  $filter: {
+                    input: '$postComments',
+                    as: 'comment',
+                    cond: { $eq: ['$$comment.postId', '$$post._id'] }
+                  }
+                },
+                isLiked: viewerObjectId
+                  ? {
+                    $in: [
+                      viewerObjectId,
+                      {
+                        $map: {
+                          input: {
+                            $filter: {
+                              input: '$postLikes',
+                              as: 'like',
+                              cond: { $eq: ['$$like.postId', '$$post._id'] }
+                            }
+                          },
+                          as: 'like',
+                          in: '$$like.userId'
+                        }
+                      }
+                    ]
+                  }
+                  : { $literal: false }
               }
             }
           }
@@ -158,7 +303,14 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ message: 'Album not found.' });
     }
 
-    return res.status(200).json(albumList[0]);
+    const album = albumList[0];
+    if (Array.isArray(album.posts)) {
+      for (const post of album.posts) {
+        post.timeAgo = formatTimeAgo(post.createdAt);
+      }
+    }
+
+    return res.status(200).json(album);
   } catch (error) {
     console.error('Error loading album:', error);
     return res.status(500).json({ message: 'Error loading album', error: error.message });
@@ -276,6 +428,15 @@ router.delete('/:id/posts/:postId', async (req, res) => {
       return res.status(404).json({ message: 'Post not found in this album.' });
     }
 
+    const remainingPosts = await db.collection('albumPosts').countDocuments({ albumId: new ObjectId(id) });
+
+    if (remainingPosts === 0) {
+      const album = await db.collection('albums').findOne({ _id: new ObjectId(id) });
+      if (album) {
+        await db.collection('albums').deleteOne({ _id: new ObjectId(id) });
+      }
+    }
+
     return res.status(200).json({ message: 'Post removed from album.' });
   } catch (error) {
     console.error('Error removing post from album:', error);
@@ -285,6 +446,7 @@ router.delete('/:id/posts/:postId', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
+  const { requester } = req.body || {};
 
   if (!ObjectId.isValid(id)) {
     return res.status(400).json({ message: 'Invalid Album ID.' });
@@ -293,6 +455,17 @@ router.delete('/:id', async (req, res) => {
   try {
     const db = getDB();
     const albumObjectId = new ObjectId(id);
+
+    const album = await db.collection('albums').findOne({ _id: albumObjectId });
+    if (!album) return res.status(404).json({ message: 'Album not found.' });
+
+    const user = await db.collection('users').findOne({ username: requester });
+    const isAdmin = user && user.role === 'admin';
+    const isOwner = album.userId.toString() === user?._id.toString();
+
+    if (!isAdmin && !isOwner) {
+      return res.status(403).json({ message: 'You do not have permission to delete this album.' });
+    }
 
     await db.collection('albums').deleteOne({ _id: albumObjectId });
     await db.collection('albumPosts').deleteMany({ albumId: albumObjectId });
@@ -308,7 +481,7 @@ router.delete('/:id', async (req, res) => {
 // PUT /api/albums/:id
 router.put('/:id', async (req, res) => {
   const { id } = req.params;
-  const { name, description, hashtags } = req.body;
+  const { name, description, hashtags, requester } = req.body;
 
   if (!ObjectId.isValid(id)) {
     return res.status(400).json({ message: 'Invalid Album ID.' });
@@ -320,6 +493,18 @@ router.put('/:id', async (req, res) => {
 
   try {
     const db = getDB();
+
+    const album = await db.collection('albums').findOne({ _id: new ObjectId(id) });
+    if (!album) return res.status(404).json({ message: 'Album not found.' });
+
+    const user = await db.collection('users').findOne({ username: requester });
+    const isAdmin = user && user.role === 'admin';
+    const isOwner = album.userId.toString() === user?._id.toString();
+
+    if (!isAdmin && !isOwner) {
+      return res.status(403).json({ message: 'You do not have permission to edit this album.' });
+    }
+
     const updateFields = {
       updatedAt: new Date()
     };
@@ -329,7 +514,7 @@ router.put('/:id', async (req, res) => {
     if (hashtags !== undefined) {
       if (Array.isArray(hashtags)) {
         updateFields.hashtags = hashtags;
-      } else if (typeof hashtags === 'string') {        
+      } else if (typeof hashtags === 'string') {
         updateFields.hashtags = hashtags.trim() ? hashtags.trim().split(/\s+/) : [];
       }
     }
