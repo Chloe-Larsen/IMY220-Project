@@ -2794,3 +2794,165 @@ body {
   font-size: 0.9rem;
   color: var(--accent-green);
 }
+
+/*----------------- Search Tabs & Results -----------------*/
+
+.search-tabs {
+  display: flex;
+  gap: 12px;
+  margin-top: 1.5vh;
+  border-bottom: 2px solid var(--border-muted);
+  padding-bottom: 8px;
+}
+
+.search-tab {
+  background: none;
+  border: none;
+  font-family: var(--font-main);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #7b8377;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.search-tab:hover {
+  background-color: #d6dbcf;
+}
+
+.search-tab.active {
+  color: #fff;
+  background-color: var(--accent-green);
+}
+
+.search-results-container {
+  padding: 2vh 5vw 4vh;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  width: 100%;
+}
+
+.search-section-title {
+  font-family: var(--font-main);
+  font-size: 1.4rem;
+  color: var(--text-main);
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-muted);
+}
+
+/* User Results */
+.search-user-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.search-user-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background-color: #d6dbcf;
+  border-radius: 8px;
+  text-decoration: none;
+  border: 1px solid var(--border-muted);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.search-user-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent-green);
+}
+
+.search-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: var(--tags-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  color: #555b51;
+  font-size: 1.2rem;
+}
+
+.search-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.search-user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.search-user-name {
+  font-weight: 600;
+  color: var(--text-main);
+  font-size: 1.05rem;
+}
+
+.search-user-handle {
+  color: #7b8377;
+  font-size: 0.9rem;
+}
+
+/* Album Results */
+.search-album-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.search-album-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background-color: #d6dbcf;
+  border-radius: 8px;
+  text-decoration: none;
+  border: 1px solid var(--border-muted);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.search-album-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent-green);
+}
+
+.search-album-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 6px;
+  background-color: var(--accent-green);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.search-album-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.search-album-name {
+  font-weight: 600;
+  color: var(--text-main);
+  font-size: 1.05rem;
+}
+
+.search-album-meta {
+  color: #7b8377;
+  font-size: 0.9rem;
+}
