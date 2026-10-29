@@ -201,6 +201,30 @@ router.post('/accept', async (req, res) => {
       { $set: { status: 'accepted', updatedAt: now } }
     );
 
+    const acceptedBy = request.userId2;
+    const requestedBy = request.userId1;
+
+    await db.collection('activities').insertMany([
+      {
+        actorId: requestedBy,
+        friendId: acceptedBy,
+        actionType: 'friend_accepted',
+        postId: null,
+        albumId: null,
+        photoCount: null,
+        createdAt: now
+      },
+      {
+        actorId: acceptedBy,
+        friendId: requestedBy,
+        actionType: 'friend_accepted',
+        postId: null,
+        albumId: null,
+        photoCount: null,
+        createdAt: now
+      }
+    ]);
+
     return res.status(200).json({ message: 'Friend request accepted.' });
   } catch (error) {
     console.error('Error accepting friend request:', error);
@@ -279,6 +303,26 @@ router.delete('/remove', async (req, res) => {
     if (result.deletedCount === 0) {
       return res.status(404).json({ message: 'Friendship record not found.' });
     }
+
+    await db.collection('activities').insertMany([
+      { 
+        actorId: u1._id, 
+        friendId: u2._id, 
+        actionType: 'friend_removed', 
+        postId: null, 
+        albumId: null, 
+        photoCount: null, 
+        createdAt: new Date() 
+      },
+      { 
+        actorId: u2._id, 
+        friendId: u1._id, 
+        actionType: 'friend_removed', 
+        postId: null, 
+        albumId: null, 
+        photoCount: null, 
+        createdAt: new Date() }
+    ]);
 
     return res.status(200).json({ message: 'Friend removed successfully.' });
   } catch (error) {
