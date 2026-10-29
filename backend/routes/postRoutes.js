@@ -193,6 +193,22 @@ router.get('/:id', async (req, res) => {
         }
       },
       {
+        $lookup: {
+          from: 'albumPosts',
+          localField: '_id',
+          foreignField: 'postId',
+          as: 'albumLinks'
+        }
+      },
+      {
+        $lookup: {
+          from: 'albums',
+          localField: 'albumLinks.albumId',
+          foreignField: '_id',
+          as: 'albums'
+        }
+      },
+      {
         $project: {
           id: '$_id',
           caption: 1,
@@ -201,7 +217,17 @@ router.get('/:id', async (req, res) => {
           createdAt: 1,
           username: '$author.username',
           likes: { $size: '$likes' },
-          comments: '$comments'
+          comments: '$comments',
+          albums: {
+            $map: {
+              input: '$albums',
+              as: 'album',
+              in: {
+                id: '$$album._id',
+                name: '$$album.name'
+              }
+            }
+          }
         }
       }
     ]).toArray();
@@ -383,7 +409,7 @@ router.post('/:id/report', async (req, res) => {
     const db = getDB();
     const postId = new ObjectId(req.params.id);
     const post = await db.collection('posts').findOne({ _id: postId });
-    
+
     if (!post) return res.status(404).json({ message: 'Post not found.' });
 
     const user = await db.collection('users').findOne({ username: reporter });

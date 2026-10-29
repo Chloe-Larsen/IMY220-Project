@@ -2361,7 +2361,7 @@ body {
 }
 
 .activity-filter-pill.active {
-  background-color:  #66815D;
+  background-color: #66815D;
   color: #ffffff;
   border-color: #66815D;
 }
@@ -2749,4 +2749,48 @@ body {
 
 .reported-view-btn:hover {
   background-color: var(--accent-green);
+}
+
+/*----------------- Post Page Albums -----------------*/
+
+.postpage-albums-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  margin-top: 4px;
+}
+
+.postpage-albums-label {
+  font-family: var(--font-main);
+  font-size: 0.9rem;
+  color: #7b8377;
+  font-style: italic;
+}
+
+.postpage-album-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #d6dbcf;
+  border: 1px solid var(--border-muted);
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-family: var(--font-main);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-main);
+  text-decoration: none;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.postpage-album-badge:hover {
+  background-color: var(--tags-color);
+  border-color: var(--accent-green);
+}
+
+.postpage-album-icon {
+  font-size: 0.9rem;
+  color: var(--accent-green);
 }
