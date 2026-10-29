@@ -23,9 +23,11 @@ export default function AlbumCard({ album, onSelectAlbum }) {
             <div className="post-meta-details">
                 <h3 className="album-card-title">{album.name}</h3>
                 <p className="post-description-text">{album.description || 'No description provided.'}</p>
-                {album.hashtags && (
+                {album.hashtags && album.hashtags.length > 0 && (
                     <div className="post-hashtags-container">
-                        <span className="hashtag-btn">{album.hashtags}</span>
+                        <span className="hashtag-btn">
+                            {Array.isArray(album.hashtags) ? album.hashtags.join(' ') : album.hashtags}
+                        </span>
                     </div>
                 )}
             </div>

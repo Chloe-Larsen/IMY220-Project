@@ -233,21 +233,29 @@ export default function ProfilePage() {
 
     const handleUpdateAlbum = async (albumId, updatedData) => {
         try {
-            await fetch(`http://localhost:5000/api/albums/${albumId}`, {
+            const res = await fetch(`http://localhost:5000/api/albums/${albumId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updatedData)
+                body: JSON.stringify({
+                    ...updatedData,
+                    requester: loggedInUser.username
+                })
             });
-        } catch {
-            // Local fallback
-        }
 
-        const updater = (album) =>
-            album.id === albumId ? { ...album, ...updatedData } : album;
+            if (res.ok) {
+                const data = await res.json();                
+                const updatedAlbumFromDB = data.album;
 
-        setUserAlbums((prev) => prev.map(updater));
-        if (selectedAlbum && selectedAlbum.id === albumId) {
-            setSelectedAlbum((prev) => ({ ...prev, ...updatedData }));
+                setUserAlbums((prev) => prev.map((a) =>
+                    a.id === albumId ? updatedAlbumFromDB : a
+                ));
+
+                if (selectedAlbum && selectedAlbum.id === albumId) {
+                    setSelectedAlbum(updatedAlbumFromDB);
+                }
+            }
+        } catch (err) {
+            console.error("Failed to update album:", err);
         }
     };
 

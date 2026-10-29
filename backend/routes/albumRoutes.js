@@ -4,6 +4,12 @@ import { getDB } from '../connection.js';
 
 const router = Router();
 
+function parseHashtags(hashtags) {
+  if (!hashtags) return [];
+  if (Array.isArray(hashtags)) return hashtags;
+  return hashtags.trim().split(/\s+/).filter(Boolean);
+}
+
 function formatTimeAgo(date) {
   if (!date) return 'just now';
 
@@ -75,7 +81,7 @@ router.get('/', async (req, res) => {
           foreignField: '_id',
           as: 'photos'
         }
-      },      
+      },
       {
         $lookup: {
           from: 'likes',
@@ -83,7 +89,7 @@ router.get('/', async (req, res) => {
           foreignField: 'postId',
           as: 'photoLikes'
         }
-      },      
+      },
       {
         $lookup: {
           from: 'comments',
@@ -105,6 +111,7 @@ router.get('/', async (req, res) => {
           id: '$_id',
           name: 1,
           description: 1,
+          hashtags: 1,
           createdAt: 1,
           updatedAt: 1,
           username: { $arrayElemAt: ['$owner.username', 0] },
@@ -163,7 +170,7 @@ router.get('/', async (req, res) => {
         }
       }
     ]).toArray();
-    
+
     for (const album of albums) {
       if (Array.isArray(album.posts)) {
         for (const post of album.posts) {
@@ -219,7 +226,7 @@ router.get('/:id', async (req, res) => {
           foreignField: '_id',
           as: 'posts'
         }
-      },      
+      },
       {
         $lookup: {
           from: 'likes',
@@ -227,7 +234,7 @@ router.get('/:id', async (req, res) => {
           foreignField: 'postId',
           as: 'postLikes'
         }
-      },      
+      },
       {
         $lookup: {
           from: 'comments',
@@ -241,6 +248,7 @@ router.get('/:id', async (req, res) => {
           id: '$_id',
           name: 1,
           description: 1,
+          hashtags: 1,
           createdAt: 1,
           updatedAt: 1,
           username: '$owner.username',
@@ -339,6 +347,7 @@ router.post('/', async (req, res) => {
       userId: user._id,
       name: String(name).trim(),
       description: String(description || '').trim(),
+      hashtags: parseHashtags(hashtags),
       createdAt: now,
       updatedAt: now
     };
@@ -511,13 +520,7 @@ router.put('/:id', async (req, res) => {
 
     if (name !== undefined) updateFields.name = String(name).trim();
     if (description !== undefined) updateFields.description = String(description).trim();
-    if (hashtags !== undefined) {
-      if (Array.isArray(hashtags)) {
-        updateFields.hashtags = hashtags;
-      } else if (typeof hashtags === 'string') {
-        updateFields.hashtags = hashtags.trim() ? hashtags.trim().split(/\s+/) : [];
-      }
-    }
+    if (hashtags !== undefined) updateFields.hashtags = parseHashtags(hashtags);
 
     const result = await db.collection('albums').updateOne(
       { _id: new ObjectId(id) },
@@ -527,8 +530,11 @@ router.put('/:id', async (req, res) => {
     if (result.matchedCount === 0) {
       return res.status(404).json({ message: 'Album not found.' });
     }
-
-    return res.status(200).json({ message: 'Album updated successfully.' });
+    const updatedAlbum = { ...album, ...updateFields };
+    return res.status(200).json({
+      message: 'Album updated successfully.',
+      album: updatedAlbum
+    });
   } catch (error) {
     if (error.errInfo?.details?.schemaRulesNotSatisfied) {
       console.dir(error.errInfo.details.schemaRulesNotSatisfied, { depth: null });

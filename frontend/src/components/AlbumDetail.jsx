@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect  } from 'react';
 import PostList from './PostList';
 
 export default function AlbumDetail({
@@ -19,8 +19,20 @@ export default function AlbumDetail({
     const [editData, setEditData] = useState({
         name: album.name || '',
         description: album.description || '',
-        hashtags: album.hashtags || ''
+        hashtags: Array.isArray(album.hashtags)
+            ? album.hashtags.join(' ')
+            : (album.hashtags || '')
     });
+
+    useEffect(() => {
+        setEditData({
+            name: album.name || '',
+            description: album.description || '',
+            hashtags: Array.isArray(album.hashtags)
+                ? album.hashtags.join(' ')
+                : (album.hashtags || '')
+        });
+    }, [album]);
 
     const handleEditSubmit = (e) => {
         e.preventDefault();

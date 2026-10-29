@@ -145,7 +145,7 @@ router.get('/profile/:username', async (req, res) => {
 
 // PUT /api/auth/profile/:username
 router.put('/profile/:username', async (req, res) => {
-  const { username } = req.params;
+  const targetUsername = req.params.username.toLowerCase().trim();
   const { name, surname, pronouns, links, bio, avatarUrl, requester } = req.body;
 
   try {
@@ -153,11 +153,11 @@ router.put('/profile/:username', async (req, res) => {
 
     const requesterUser = await db.collection('users').findOne({ username: requester });
     const isAdmin = requesterUser && requesterUser.role === 'admin';
-    const isSelf = requester === username;
-
-    if (!isAdmin && !isSelf) {
+    const isSelf = requester === targetUsername;
+    if (requester && !isAdmin && !isSelf) {
       return res.status(403).json({ message: 'You can only edit your own profile.' });
     }
+
 
     const updateFields = {
       updatedAt: new Date()
@@ -171,7 +171,7 @@ router.put('/profile/:username', async (req, res) => {
     if (avatarUrl !== undefined) updateFields.avatarUrl = String(avatarUrl).trim();
 
     const result = await db.collection('users').updateOne(
-      { username: username.toLowerCase().trim() },
+      { username: targetUsername },
       { $set: updateFields }
     );
 
