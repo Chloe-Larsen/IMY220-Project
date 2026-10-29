@@ -307,12 +307,27 @@ router.delete('/:id', async (req, res) => {
     const db = getDB();
     const postId = new ObjectId(req.params.id);
 
+    const albumLinks = await db.collection('albumPosts').find({ postId }).toArray();
+    const affectedAlbumIds = albumLinks.map(link => link.albumId);
+
     await db.collection('posts').deleteOne({ _id: postId });
     await db.collection('comments').deleteMany({ postId });
     await db.collection('likes').deleteMany({ postId });
     await db.collection('albumPosts').deleteMany({ postId });
     await db.collection('activities').deleteMany({ postId });
     await db.collection('reports').deleteMany({ postId: postId });
+
+    for (const albumId of affectedAlbumIds) {
+      const remainingCount = await db.collection('albumPosts').countDocuments({ albumId });
+
+      if (remainingCount === 0) {        
+        const album = await db.collection('albums').findOne({ _id: albumId });
+
+        if (album) {          
+          await db.collection('albums').deleteOne({ _id: albumId });
+        }
+      }
+    }
 
     res.status(200).json({ message: 'Post deleted successfully.' });
   } catch (error) {

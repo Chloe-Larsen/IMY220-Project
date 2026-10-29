@@ -276,6 +276,15 @@ router.delete('/:id/posts/:postId', async (req, res) => {
       return res.status(404).json({ message: 'Post not found in this album.' });
     }
 
+    const remainingPosts = await db.collection('albumPosts').countDocuments({ albumId: new ObjectId(id) });
+
+    if (remainingPosts === 0) {      
+      const album = await db.collection('albums').findOne({ _id: new ObjectId(id) });
+      if (album) {        
+        await db.collection('albums').deleteOne({ _id: new ObjectId(id) });
+      }
+    }
+
     return res.status(200).json({ message: 'Post removed from album.' });
   } catch (error) {
     console.error('Error removing post from album:', error);
@@ -329,7 +338,7 @@ router.put('/:id', async (req, res) => {
     if (hashtags !== undefined) {
       if (Array.isArray(hashtags)) {
         updateFields.hashtags = hashtags;
-      } else if (typeof hashtags === 'string') {        
+      } else if (typeof hashtags === 'string') {
         updateFields.hashtags = hashtags.trim() ? hashtags.trim().split(/\s+/) : [];
       }
     }

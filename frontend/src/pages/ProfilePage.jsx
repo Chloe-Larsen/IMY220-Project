@@ -298,6 +298,15 @@ export default function ProfilePage() {
 
         }
 
+        const currentAlbum = userAlbums.find(a => a.id === albumId);
+        const isLastPost = currentAlbum && currentAlbum.posts && currentAlbum.posts.length <= 1;
+
+        if (isLastPost) {            
+            setUserAlbums((prev) => prev.filter((a) => a.id !== albumId));
+            setSelectedAlbum(null);
+            return;
+        }
+
         const removePost = (album) => {
             if (album.id !== albumId) return album;
             return {
@@ -348,8 +357,7 @@ export default function ProfilePage() {
             const res = await fetch(`http://localhost:5000/api/albums/${alb.id}`);
             if (res.ok) {
                 const freshData = await res.json();
-                setSelectedAlbum(freshData);
-                // Also keep userAlbums in sync
+                setSelectedAlbum(freshData);                
                 setUserAlbums((prev) =>
                     prev.map((a) => (a.id === freshData.id ? freshData : a))
                 );
