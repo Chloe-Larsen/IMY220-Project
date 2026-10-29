@@ -5,6 +5,7 @@ import Image from './Image';
 export default function EditProfile({ profile, onSave, onCancel, onDelete }) {
   const [formData, setFormData] = useState({
     name: profile.name || '',
+    surname: profile.surname || '',
     pronouns: profile.pronouns || '',
     links: profile.links || '',
     bio: profile.bio || '',
@@ -88,7 +89,21 @@ export default function EditProfile({ profile, onSave, onCancel, onDelete }) {
                 className="edit-wireframe-input"
                 value={formData.name}
                 onChange={handleChange}
-                placeholder="Your full name"
+                placeholder="Your first name"
+                required
+              />
+            </div>
+
+            <div className="edit-field-group">
+              <label htmlFor="edit-surname" className="edit-label">Surname</label>
+              <input
+                id="edit-surname"
+                type="text"
+                surname="surname"
+                className="edit-wireframe-input"
+                value={formData.surname}
+                onChange={handleChange}
+                placeholder="Your surname"
                 required
               />
             </div>

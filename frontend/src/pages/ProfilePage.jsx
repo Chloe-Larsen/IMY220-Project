@@ -29,6 +29,7 @@ export default function ProfilePage() {
         id: targetUsername,
         username: targetUsername,
         name: '',
+        surname: '',
         pronouns: '',
         links: '',
         bio: '',
@@ -499,7 +500,7 @@ export default function ProfilePage() {
                             <div className="wf-bio-details-stack">
                                 <div className="wf-bio-entry">
                                     <span className="wf-bio-key">Name</span>
-                                    <span className="wf-bio-val">{profile.name}</span>
+                                    <span className="wf-bio-val">{profile.name} {profile.surname}</span>
                                 </div>
 
                                 {canViewFullProfile && (
